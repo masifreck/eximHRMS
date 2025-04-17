@@ -1,12 +1,14 @@
 
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Dimensions, Image, FlatList, TextInput, ScrollView, LogBox } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Dimensions, Image, FlatList, TextInput, ScrollView, LogBox, Alert } from 'react-native';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import DocumentPicker from 'react-native-document-picker';
 import Uploading from '../component/Uploading';
 import CustomFilePicker from '../component/CustomFilePicker';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 LogBox.ignoreAllLogs();
-
+import RNFetchBlob from 'rn-fetch-blob';
+import RNFS from 'react-native-fs';
 const deviceWidth = Dimensions.get('window').width;
 
 const NewReimbursementRequest = ({ navigation }) => {
@@ -18,21 +20,67 @@ const NewReimbursementRequest = ({ navigation }) => {
 
     const [expenseData, setExpenseData] = useState([]);
     const [selectedFile, setSelectedFile] = useState(null);
+    const [employeeDetails,setEmployeeDetails]=useState('');
+    const [Token,setToken]=useState('');
+     const [EmployeeId, setEmployeeId] = useState('');
+   
+    useEffect(() => {
+     const checkLoginStatus = async () => {
+       try {
+         const details = await AsyncStorage.getItem("employeeDetails");
+         const token = await AsyncStorage.getItem('access_token');
+   
+         if (details !== null) {
+           const parsedDetails = JSON.parse(details);
+           
+           setEmployeeDetails(parsedDetails);
+           setEmployeeId(parsedDetails.EmployeeId);
+           setToken(token);
 
-  const handleFileSelected = (file) => {
-    setSelectedFile(file);
-    console.log('File selected:', file);
-  };
+         }
+        } catch (error) {
+            console.error('Error fetching employee data:', error.message);
+          } finally {
+            setLoading(false);
+          }
+        };
+      
+        checkLoginStatus();
+      }, []);
+
+     
+      const handleFileSelected = (files) => {
+        console.log('Selected files:', files);
+      
+        // For multiple files
+        setSelectedFile(files); // assuming you have `const [selectedFiles, setSelectedFiles] = useState([]);`
+      
+        files.forEach((file, index) => {
+          console.log(`File ${index + 1}:`);
+          console.log('Name:', file.name);
+          console.log('Type:', file.type);
+          console.log('URI:', file.uri);
+        });
+      };
+      
 
     // Function to handle navigation to NewExpense screen
     const handleAddExpense = () => {
-        navigation.navigate('NewExpense', { onSave: handleSaveExpense });
+        navigation.navigate('NewExpense', { onSave: handleSaveExpense ,data });
+       
     };
+    useEffect(() => {
+        if (expenseData.length > 0) {
+          console.log('Updated expense data:', expenseData);
+        }
+      }, [expenseData]);
+      
 
     // Function to handle saving the expense from NewExpense screen
     const handleSaveExpense = (expenseDetails) => {
         setExpenseData((prevExpenseData) => [...prevExpenseData, expenseDetails]);
         // Update total expense amount
+        console.log('data of expense',expenseData)
         setClaimAmmount((prevTotalExpense) => prevTotalExpense + expenseDetails.total);
         setIsVisible(true);
     };
@@ -46,6 +94,19 @@ const NewReimbursementRequest = ({ navigation }) => {
         });
     };
     // Function to render the list of expenses
+      
+        const formData = [
+          { name: 'EmployeeId', data: EmployeeId.toString() }, // ✅ text field
+        //   { name: 'Latitude', data: latitude.toString() },     // ✅ text field
+        //   { name: 'Longitude', data: longitude.toString() }, 
+        //   {name:'MapUrl',data:`https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`} , // ✅ text field
+        //   {
+        //     name: 'Attachment',
+        //     filename: selectedFile.name,
+        //     type: selectedFile.type,
+        //     data: RNFetchBlob.wrap(cleanImagePath),
+        //   },
+        ];
     const renderExpenseList = () => {
         return expenseData.map((expense, index) => (
             <View key={index} style={styles.expenseContainer}>
@@ -120,28 +181,8 @@ const NewReimbursementRequest = ({ navigation }) => {
     };
 
 
-    const handleFileIconPress = async () => {
-        try {
-            const results = await DocumentPicker.pickMultiple({
-                type: [DocumentPicker.types.allFiles],
-            });
 
-            const documentsWithProgress = results.map((document) => ({
-                ...document,
-                progress: 0, // Set initial progress to 0
-            }));
 
-            setSelectedDocuments([...selectedDocuments, ...documentsWithProgress]);
-        } catch (error) {
-            console.log('Document Picker Error:', error);
-        }
-    };
-
-    const handleRemoveFile = (index) => {
-        const updatedDocuments = [...selectedDocuments];
-        updatedDocuments.splice(index, 1);
-        setSelectedDocuments(updatedDocuments);
-    };
 
     useEffect(() => {
         // Simulating file upload progress
@@ -161,18 +202,44 @@ const NewReimbursementRequest = ({ navigation }) => {
         };
     }, []);
 
-    const renderFileItem = ({ item, index }) => (
-        <View style={[styles.inputContainer, { marginTop: 10, }]}>
-            <View style={[styles.fileInfoContainer, { paddingBottom: 6 }]}>
-                <Text style={styles.fileName}>{item.name}</Text>
-                <Uploading progress={item.progress} width={deviceWidth * 0.65} color={'green'} borderColor={'gray'} />
-            </View>
+    const [data, setData] = useState([]);
 
-            <TouchableOpacity onPress={() => handleRemoveFile(index)}>
-                <Image style={styles.rightIcon} source={require('../assets/minus.png')} />
-            </TouchableOpacity>
-        </View>
-    );
+    useEffect(() => {
+        const getTravelType = async () => {
+          try {
+            const token = await AsyncStorage.getItem('access_token');
+            const url = 'https://hrexim.tranzol.com/api/Employee/GettravelType';
+            const response = await fetch(url, {
+              method: 'GET',
+              headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json',
+              },
+            });
+      
+            if (!response.ok) {
+              Alert.alert('Error', 'Response is not ok in travel type dropdown');
+              return;
+            }
+      
+            const travelTypeData = await response.json();
+           // console.log('travel type drop down', travelTypeData);
+      
+            const formattedData = travelTypeData?.map(item => ({
+              label: item.TravelType, // for dropdown display
+              value: item.Id,          // actual value
+            })) || [];
+      
+            setData(formattedData);
+          } catch (error) {
+            Alert.alert('Error', error.message || 'Something went wrong');
+          }
+        };
+      
+        getTravelType();
+      }, []);
+      
+    
 
 
     return (
@@ -199,12 +266,12 @@ const NewReimbursementRequest = ({ navigation }) => {
                 />
             </View>
             <CustomFilePicker onFileSelected={handleFileSelected} />
-            <TouchableOpacity style={[styles.button, { marginTop: 20 }]}
-                onPress={handleAddExpense}>
+            {isVisible && expenseData.length > 0 ?(null): ( <TouchableOpacity style={[styles.button, { marginTop: 20 }]}
+                onPress={handleAddExpense} >
                 <Text style={styles.buttonText}>
                     Add New Expense
                 </Text>
-            </TouchableOpacity>
+            </TouchableOpacity>)}
             <View style={styles.expenseList}>{renderExpenseList()}</View>
             {isVisible && expenseData.length > 0 ? (
                 <TouchableOpacity style={[styles.button, { marginBottom: 20 }]}>

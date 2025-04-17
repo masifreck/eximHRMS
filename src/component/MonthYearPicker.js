@@ -33,7 +33,7 @@ const MonthYearPicker = ({ onMonthYearChange }) => {
     <View style={styles.container}>
       <TouchableOpacity style={styles.btn} onPress={showDatepicker}>
         <Text style={styles.txt}>
-          {formatDate(selectedDate)}
+          Select Month & Year
         </Text>
       </TouchableOpacity>
 

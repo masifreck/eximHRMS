@@ -1,14 +1,15 @@
 
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, TextInput, ScrollView, Dimensions } from 'react-native';
+import React, { useState,useEffect } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, TextInput, ScrollView, Dimensions ,Alert} from 'react-native';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { Dropdown } from 'react-native-element-dropdown';
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
 const deviceWidth = Dimensions.get('window').width;
 
 const NewExpense = ({ navigation, route }) => {
     // Function to handle saving the expense and returning to the previous screen
+   
     const handleSaveExpense = () => {
         const total = Number(fare) + Number(fooding) + Number(lodging) + Number(misc);
         const expenseDetails = {
@@ -25,9 +26,10 @@ const NewExpense = ({ navigation, route }) => {
             travelType,
             total
         };
-
+      
         if (route.params && route.params.onSave) {
             route.params.onSave(expenseDetails);
+           
         }
         navigation.goBack();
     };
@@ -42,17 +44,15 @@ const NewExpense = ({ navigation, route }) => {
     const [lodging, setLodging] = useState(0.00);
     const [misc, setMisc] = useState(0.00);
     const [remark, setRemark] = useState('');
+    
 
     const [travelType, setTravelType] = useState(null);
     const [isFocus, setIsFocus] = useState(false);
 
-    const data = [
-        { label: 'Item 1', value: '1' },
-        { label: 'Item 2', value: '2' },
-        { label: 'Item 3', value: '3' },
-        { label: 'Item 4', value: '4' },
-        { label: 'Item 5', value: '5' },
-    ];
+    const data = route.params?.data || [];
+    //console.log('data ', data);
+    
+
 
     const showDatePicker = () => {
         setDatePickerVisibility(true);
@@ -67,6 +67,8 @@ const NewExpense = ({ navigation, route }) => {
         setSelectedDate(formattedDate);
         hideDatePicker();
     };
+   
+      
 
     return (
         <ScrollView>
@@ -126,7 +128,7 @@ const NewExpense = ({ navigation, route }) => {
                             selectedTextStyle={styles.selectedTextStyle}
                             itemTextStyle={{ color: 'black' }}
                             data={data}
-                            maxHeight={200}
+                            maxHeight={250}
                             labelField="label"
                             valueField="value"
                             placeholder={!isFocus ? 'Select Travel Type' : '...'}

@@ -4,7 +4,9 @@ import PayslipSummary from '../component/PayslipSummary';
 import MonthYearPicker from '../component/MonthYearPicker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Loading from '../component/Loading';
-
+import RNPrint from 'react-native-print';
+import RNHTMLtoPDF from 'react-native-html-to-pdf';
+import {SalaryHTML} from '../component/HTMLSALRY'
 const renderDot = color => {
   return (
     <View
@@ -49,6 +51,7 @@ const renderLegendComponent = (salaryDetail) => {
 const Salaryslip = ({navigation}) => {
   const [salaryDetail,setSlaryDetails]=useState('');
   const [showIssueBox, setShowIssueBox] = useState(false);
+  const [filePath, setFilePath] = useState(null);
   const [issue, setIssue] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1); // default current month
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
@@ -61,7 +64,44 @@ const Salaryslip = ({navigation}) => {
     setSelectedMonth(monthName); // or store month number if needed for API
     setSelectedYear(year);
   };
-  
+  const generatePDF = async () => {
+    try {
+      // Step 1: Generate the PDF
+      const result = await RNHTMLtoPDF.convert({
+        html: `${SalaryHTML(salaryDetail)}`,
+        fileName: `SalarySlip`,
+        directory: 'Documents',
+      });
+
+      //console.log('PDF generated at:', result.filePath);
+      setFilePath(result.filePath); // Save filePath for sharing
+
+      // Step 2: Share the PDF file using react-native-share
+      //sharePDF(result.filePath);
+
+    } catch (error) {
+      console.log('Error generating PDF:', error);
+      setErrorMessage('Error generating PDF');
+      setShowAlert(true);
+    }
+  };
+
+  const handlePrintButtonPress = async () => {
+    try {
+     
+      const result = await RNHTMLtoPDF.convert({
+        html: `${SalaryHTML(salaryDetail)}`,
+        fileName: 'salary.pdf',
+        directory: 'Documents',
+      });
+      setFilePath(result.filePath); // Save filePath for sharing or printing
+      await RNPrint.print({ filePath: result.filePath }); // Automatically show the PDF
+    } catch (error) {
+      console.log('Error generating PDF: ', error);
+      setErrorMessage('Error generating PDF');
+      setShowAlert(true);
+    }
+  };
 const [loading,setLoading]=useState(false);
   useEffect(() => {
     const checkLoginStatus = async () => {
@@ -185,12 +225,12 @@ const [loading,setLoading]=useState(false);
           backgroundColor: 'lightgray',
           borderWidth: 0.5,
           borderColor: 'gray'
-        }]} onPress={() => { setShowIssueBox(true) }}>
-          <Text style={[styles.txt, { color: 'black' }]}>Raise an Issue</Text>
+        }]} disabled onPress={() => { setShowIssueBox(true) }}>
+          <Text style={[styles.txt, { color: 'black' }]}>{selectedMonth +" " + selectedYear}</Text>
         </TouchableOpacity>
 
 
-        <TouchableOpacity style={[styles.btn, { width: '30%', backgroundColor: '#aa18ea' }]}>
+        <TouchableOpacity style={[styles.btn, { width: '30%', backgroundColor: '#aa18ea' }]} onPress={handlePrintButtonPress}>
           <Text style={styles.txt}>Download</Text>
         </TouchableOpacity>
       </View>

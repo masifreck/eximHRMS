@@ -32,7 +32,7 @@ import {
               'Content-Type': 'application/json',
             },
           });
-  console.log('response',`https://hrexim.tranzol.com/fe3e58605c614c36b7946d403c3fa8e7/Holidays?m=${mobileNo}s=${password}&d=${token}`)
+ // console.log('response',`https://hrexim.tranzol.com/fe3e58605c614c36b7946d403c3fa8e7/Holidays?m=${mobileNo}s=${password}&d=${token}`)
           if (!response.ok) {
             throw new Error('Invalid response from server');
           }

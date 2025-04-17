@@ -1,26 +1,74 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity ,Alert,ActivityIndicator} from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 const ReimbursementSts = ({route}) => {
+  const [isCancelling, setIsCancelling] = useState(false);
+
   // Function to render the list of expenses
   const { data } = route.params || {};
   console.log('data',data)
+  let statusColor = 'black';
+
+  if (data?.Status === 'Approve') {
+    statusColor = 'green';
+  } else if (data?.Status === 'Pending') {
+    statusColor = 'yellow';
+  } else if (data?.Status === 'Reject' || data?.Status === 'Rejected') {
+    statusColor = 'red';
+  }
+  
+  const cancelRequest = async (id, reimbursementId, navigation) => {
+    setIsCancelling(true); // Start loading
+    try {
+      const token = await AsyncStorage.getItem('access_token');
+  
+      const response = await fetch('http://localhost:50144/api/Employee/CancelReimbursementRequest', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          Id: id,
+          ReimbursementId: reimbursementId,
+        }),
+      });
+  
+      if (!response.ok) {
+        throw new Error('Failed to cancel the request');
+      }
+  
+      const result = await response.json();
+      console.log('Cancel response:', result);
+  
+      Alert.alert('Success', 'Request cancelled successfully', [
+        { text: 'OK', onPress: () => navigation.goBack() },
+      ]);
+    } catch (error) {
+      console.error('Error:', error);
+      Alert.alert('Error', 'Something went wrong while cancelling the request');
+    } finally {
+      setIsCancelling(false); // Stop loading
+    }
+  };
+  
   const RenderExpenseList = () => {
     return (
       <View>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-          <Text style={{fontSize:18, color: 'green',fontWeight:'bold'}}>₹ 2000</Text>
-          <Text style={{ fontSize: 14, color: 'gray' }}>22-04-23</Text>
+          <Text style={{fontSize:18, color: 'green',fontWeight:'bold'}}>₹ {data.approvedAmount}</Text>
+          <Text style={{ fontSize: 14, color: 'gray' }}>{data.createDate}</Text>
         </View>
         <View style={{
           flexDirection: 'row',
           justifyContent: 'space-between',
           marginBottom: 6,
         }}>
-          <Text style={styles.item}>Bhubaneswar</Text>
+          <Text style={styles.item}>{data.fromPlace}</Text>
           <Text style={{ fontSize: 14, color: 'gray', fontWeight: 'bold' }}>- -</Text>
-          <Text style={styles.item}>Cuttack</Text>
+          <Text style={styles.item}>{data.toPlace}</Text>
         </View>
 
         <View style={{
@@ -37,31 +85,31 @@ const ReimbursementSts = ({route}) => {
             color: 'blue',
             fontSize: 14,
             fontWeight: 'bold'
-          }}>BIKE</Text></Text>
+          }}>{data.travelTypeName}</Text></Text>
           <Text style={{ fontSize: 13, color: 'gray', fontWeight: '500' }}>Kilometers : <Text style={{
             color: 'blue',
             fontSize: 14,
             fontWeight: 'bold'
-          }}>20</Text></Text>
+          }}>{data.kilometers}</Text></Text>
         </View>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
           <Text style={{ fontSize: 12, color: 'gray', fontWeight: '500' }}>Fare : <Text style={{
             color: 'green',
             fontSize: 13,
             fontWeight: '600'
-          }}> ₹ 200</Text></Text>
+          }}> ₹ {data.Amount}</Text></Text>
           <Text style={{ fontSize: 12, color: 'gray', fontWeight: '500' }}>Fooding : <Text style={{
             color: 'green',
             fontSize: 13,
             fontWeight: '600'
-          }}> ₹ 300</Text></Text>
+          }}> ₹ {data.fooding}</Text></Text>
         </View>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
           <Text style={{ fontSize: 12, color: 'gray', fontWeight: '500' }}>Lodging : <Text style={{
             color: 'green',
             fontSize: 13,
             fontWeight: '600'
-          }}> ₹ 400</Text></Text>
+          }}> ₹ {data.lodging}</Text></Text>
           <Text style={{ fontSize: 12, color: 'gray', fontWeight: '500' }}>Misc. Expense : <Text style={{
             color: 'green',
             fontSize: 13,
@@ -69,7 +117,7 @@ const ReimbursementSts = ({route}) => {
           }}> ₹ 1000</Text></Text>
         </View>
         <Text style={[styles.label,{marginTop:8}]}>Claim Ammount : <Text style={[styles.item
-        ,{color:'green'}]}> ₹ {data.ClaimAmount}</Text></Text>
+        ,{color:'green'}]}> ₹ {data.claimAmount}</Text></Text>
       </View>
     );
   };
@@ -88,7 +136,7 @@ const ReimbursementSts = ({route}) => {
           }}>
             <Text style={styles.label}>Description:</Text>
             <Text style={styles.item}>
-             csdhgsdhbsih hchdbsh adchb cuidsbciu
+             {data.remarks}
             </Text>
           </View>
           <View style={[styles.rowContainer, { marginTop: 20 }]}>
@@ -103,19 +151,19 @@ const ReimbursementSts = ({route}) => {
                 fontSize: 16,
                 fontWeight: 'bold',
                 color: '#736f71'
-              }}>Satyaranjan Ojha</Text>
+              }}>{data.ActionHead}</Text>
               <Text style={{
                 fontWeight: '600',
                 color: 'gray'
               }}>Level 1</Text>
             </View>
             <View style={styles.statusContainer}>
-              <Text style={styles.approved}>Approved</Text>
-              <Text style={styles.timestamp}>1 day ago</Text>
+              <Text style={[styles.approved,]}>{data.Status}</Text>
+              <Text style={styles.timestamp}>Pick Date: {data.pickDate}</Text>
             </View>
 
           </View>
-          <View style={styles.rowContainer}>
+          {/* <View style={styles.rowContainer}>
             <Text style={{
               color: '#e68837',
               fontWeight: '600'
@@ -149,19 +197,9 @@ const ReimbursementSts = ({route}) => {
               <Text style={styles.timestamp}>2 hours ago</Text>
             </View>
 
-          </View>
-          <View style={styles.rowContainer}>
-            <Text style={{
-              color: '#e68837',
-              fontWeight: '600'
-            }}>Warning:</Text>
-            <Text style={{
-              color: 'gray',
-              fontWeight: '600',
-              marginLeft: 10
-            }}>--</Text>
-          </View>
-          <View style={styles.rowContainer}>
+          </View> */}
+       
+          {/* <View style={styles.rowContainer}>
             <View style={styles.circleContainer}>
               <Image
                 source={require('../assets/mypic.jpeg')}
@@ -184,7 +222,7 @@ const ReimbursementSts = ({route}) => {
               <Text style={styles.timestamp}>1 hours ago</Text>
             </View>
 
-          </View>
+          </View> */}
           <View style={[styles.rowContainer, { paddingBottom: 10, borderBottomColor: 'lightgray', borderBottomWidth: 0.8 }]}>
             <Text style={{
               color: '#e68837',
@@ -196,11 +234,21 @@ const ReimbursementSts = ({route}) => {
               marginLeft: 10
             }}>Attach the appointment</Text>
           </View>
-          <TouchableOpacity style={styles.button}>
-            <Text style={styles.buttonText}>
-              Cancel Request
-            </Text>
-          </TouchableOpacity>
+          {(item.Status === 'Submit' || item.Status === 'Pending') && (
+  <TouchableOpacity
+    style={styles.button}
+    onPress={() => cancelRequest(item.id, item.ReimbursementId, navigation)}
+    disabled={isCancelling} // Disable button during loading
+  >
+    {isCancelling ? (
+      <ActivityIndicator color="#fff" />
+    ) : (
+      <Text style={styles.buttonText}>Cancel Request</Text>
+    )}
+  </TouchableOpacity>
+)}
+
+
         </View>
       </View>
     </ScrollView>
@@ -298,6 +346,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
+    
+
   },
   buttonText: {
     fontWeight: 'bold',

@@ -2,14 +2,17 @@ import React, { useState,useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, FlatList, ImageBackground } from 'react-native';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Loading from '../component/Loading';
 const Reimbursement = ({navigation}) => {
     const [activeTab, setActiveTab] = useState('pending');
      const [employeeDetails,setEmployeeDetails]=useState('');
+     const [isloading,setIsLoading]=useState(false);
        const [data, setData] = useState([]);
        const [pendingRequests,setpendingRequests]=useState([])
        useEffect(() => {
         const checkLoginStatus = async () => {
           try {
+            setIsLoading(true);
             const details = await AsyncStorage.getItem("employeeDetails");
             const token = await AsyncStorage.getItem('access_token');
       
@@ -33,16 +36,16 @@ const Reimbursement = ({navigation}) => {
               }
       
               const responseText = await response.text(); // Get the raw response text first
-              console.log('Raw response:', responseText); // Log the raw response text
+             // console.log('Raw response:', responseText); // Log the raw response text
           
               // Now try parsing it
               const dat = JSON.parse(responseText); // Parse it only if it's valid JSON
-              console.log('Parsed response:', dat);
+             // console.log('Parsed response:', dat);
           
       
               // Format data for UI
               const formatted = dat.map(item => ({
-                id: item.ReimbursementId,
+                id: item.Id,
                 employeeId: item.EmployeeId,
                 createDate: new Date(item.CreateDate).toLocaleDateString(),
                 pickDate: item.PickDate ? new Date(item.PickDate).toLocaleDateString() : null,
@@ -60,6 +63,8 @@ const Reimbursement = ({navigation}) => {
                 claimAmount: item.ClaimAmount,
                 approvedAmount: item.ApproveAmount,
                 actionBy: item.ActionBy,
+                ActionHead:item.ActionHead,
+                Status:item.Status,
                 // Do NOT include Attachment here
               }));
               
@@ -69,14 +74,20 @@ const Reimbursement = ({navigation}) => {
           } catch (error) {
             console.error('Error fetching employee data:', error.message);
           } finally {
-            setLoading(false);
+            setIsLoading(false);
           }
         };
       
         checkLoginStatus();
       }, []);
       
- 
+      if (data?.Status === 'Approve') {
+        statusColor = 'green';
+      } else if (data?.Status === 'Pending') {
+        statusColor = 'yellow';
+      } else if (data?.Status === 'Reject' || data?.Status === 'Rejected') {
+        statusColor = 'red';
+      }
 
     const history = [
         {
@@ -102,8 +113,16 @@ const Reimbursement = ({navigation}) => {
       <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
         <View style={styles.requestTextContainer}>
           <View style={styles.amountContainer}>
-            <View style={[styles.dot, styles.orangeDot]} />
-            <Text style={styles.requestText}>Pending</Text>
+            <View style={[styles.orangeDot]} />
+            <Text style={[styles.requestText, { color: 
+  item.Status === 'Approve' ? 'green' :
+  item.Status === 'Pending' ? 'orange' :
+  item.Status === 'Reject' || item.Status === 'Rejected' ? 'red' :
+  'gray' // default color
+}]}>
+  {item.Status}
+</Text>
+
           </View>
           <View style={styles.amountContainer}>
             <Text style={styles.rupeesIcon}>₹</Text>
@@ -113,13 +132,13 @@ const Reimbursement = ({navigation}) => {
         <View style={styles.requestTextContainer}>
           <View style={styles.dateContainer}>
             <FontAwesome5 name="calendar-alt" size={16} color="gray" />
-            <Text style={styles.dateText}>{item.date}</Text>
+            <Text style={styles.dateText}>{item.createDate}</Text>
           </View>
         </View>
       </View>
       <View style={styles.detailsContainer}>
         <Text style={styles.descriptionText} numberOfLines={1}>
-          {item.description ? item.description : 'No description available'}
+          {item.remarks ? item.remarks : 'No description available'}
         </Text>
         <View style={styles.approvedContainer}>
           <View style={styles.amountContainer}>
@@ -135,43 +154,46 @@ const Reimbursement = ({navigation}) => {
 
       
 
-    const renderHistoryItem = ({ item }) => (
-
-        <TouchableOpacity style={styles.requestItem} onPress={()=>{navigation.navigate('ReimbursementSts')}}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                <View style={styles.requestTextContainer}>
-                    <View style={styles.amountContainer}>
-                        <View style={[styles.dot, styles.greenDot]} />
-                        <Text style={styles.requestText}>Approved</Text>
-                    </View>
-                    <View style={styles.amountContainer}>
-                        <Text style={styles.rupeesIcon}>₹</Text>
-                        <Text style={styles.amount}>{item.approvedAmount}</Text>
-                    </View>
-                </View>
-                <View style={styles.requestTextContainer}>
-                    <View style={styles.dateContainer}>
-                        <FontAwesome5 name="calendar-alt" size={16} color="gray" />
-                        <Text style={styles.dateText}>{item.date}</Text>
-                    </View>
-                </View>
+const renderHistoryItem = ({ item }) => {
+    if (isloading) return <Loading />;
+    
+    return (
+      <TouchableOpacity style={styles.requestItem} onPress={() => navigation.navigate('ReimbursementSts')}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+          <View style={styles.requestTextContainer}>
+            <View style={styles.amountContainer}>
+              <View style={[styles.dot, styles.greenDot]} />
+              <Text style={styles.requestText}>Approved</Text>
             </View>
-            <View style={styles.detailsContainer}>
-
-                <Text style={styles.descriptionText} numberOfLines={1}>
-                    {item.description}
-                    {/* Add "More" button logic here */}
-                </Text>
-                <View style={styles.claimedContainer}>
-                    <View style={styles.amountContainer}>
-                        <Text style={styles.claimedTitle}>Claimed Amount: </Text>
-                        <Text style={styles.rupeesIcon}>₹</Text>
-                        <Text style={styles.amount}>{item.claimAmount}</Text>
-                    </View>
-                </View>
+            <View style={styles.amountContainer}>
+              <Text style={styles.rupeesIcon}>₹</Text>
+              <Text style={styles.amount}>{item.approvedAmount}</Text>
             </View>
-        </TouchableOpacity>
+          </View>
+          <View style={styles.requestTextContainer}>
+            <View style={styles.dateContainer}>
+              <FontAwesome5 name="calendar-alt" size={16} color="gray" />
+              <Text style={styles.dateText}>{item.date}</Text>
+            </View>
+          </View>
+        </View>
+  
+        <View style={styles.detailsContainer}>
+          <Text style={styles.descriptionText} numberOfLines={1}>
+            {item.description}
+          </Text>
+          <View style={styles.claimedContainer}>
+            <View style={styles.amountContainer}>
+              <Text style={styles.claimedTitle}>Claimed Amount: </Text>
+              <Text style={styles.rupeesIcon}>₹</Text>
+              <Text style={styles.amount}>{item.claimAmount}</Text>
+            </View>
+          </View>
+        </View>
+      </TouchableOpacity>
     );
+  };
+  
 
 
     return (

@@ -454,12 +454,12 @@ const capturePhoto = async () => {
       </View>
       <View style={{ marginTop: 50 }}>
         <Text style={styles.text}>
-          Longitude    : {loadingLocation ? <ActivityIndicator size="small" color="#0000ff" />    :    longitude}
+        📍 Longitude    : {loadingLocation ? <ActivityIndicator size="small" color="#0000ff" />    :    longitude}
         </Text>
         <Text style={styles.text}>
-          Latitude        : {loadingLocation ? <ActivityIndicator size="small" color="#0000ff" /> : latitude}
+        📍 Latitude        : {loadingLocation ? <ActivityIndicator size="small" color="#0000ff" /> : latitude}
         </Text>
-        <Text style={styles.text}>EmployeeId : {EmployeeId}</Text>
+        <Text style={styles.text}>🆔 EmployeeId : {EmployeeId}</Text>
       </View>
       <View style={styles.btnView}>
         <TouchableOpacity style={styles.btn} onPress={() => setShowCamera(true)}>
