@@ -6,6 +6,7 @@ import { useNavigation } from '@react-navigation/native'
 import AttnHistory from './AttnHistory'
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import HomeCrads from '../component/HomeCrads'
 
 const Home = (route) => {
   const [lastActionData,setLastActionData]=useState('')
@@ -151,7 +152,7 @@ const RefreshLastAction = async () => {
         onScroll={handleScroll}
         scrollEventThrottle={16} >
 
-
+<HomeCrads/>
 
       </ScrollView>
       <PunchBtn isScrolliing={isScrolling}/>
