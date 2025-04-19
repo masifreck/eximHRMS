@@ -12,6 +12,12 @@ import NewExpense from './screen/NewExpense';
 import ReimbursementSts from './screen/ReimbursementSts';
 import NewSplash from '../screen/Splash';
 import Newlogin from './screen/Newlogin';
+import EProfile from './screen/EProfile';
+import AttnHistory from './screen/AttnHistory';
+import Leave from './screen/Leave';
+import Reimbursement from './screen/Reimbursement';
+import HolidayList from './screen/HolidayList';
+import Salaryslip from './screen/Salaryslip';
 
 const Stack = createNativeStackNavigator();
 
@@ -46,8 +52,33 @@ options={{headerShown:false}}/>
                     component={Home}
                     options={{ headerShown: false }} />
                    
-                 
-                
+                 <Stack.Screen
+                 name='EProfile'
+                 component={EProfile}
+                 options={{
+                    headerShown: true,
+                    headerStyle: {
+                        backgroundColor: '#aa18ea',
+                    },
+                    title: 'Punch Attendance',
+                    headerTintColor: 'white'
+                }}
+                 />
+                 <Stack.Screen
+        name="Leave"
+        component={Leave}
+        options={{
+          headerShown: true,
+          drawerIcon: ({color}) => (
+            <Entypo name="aircraft-take-off" size={22} color={color} />
+          ),
+          headerStyle: {
+            backgroundColor: '#aa18ea',
+          },
+          headerTintColor: 'white',
+          title: 'My Leaves',
+        }}
+      />
                 <Stack.Screen
                     name='Punch'
                     component={Punch}
@@ -70,6 +101,21 @@ options={{headerShown:false}}/>
                         title: 'Request New Leave',
                         headerTintColor: 'white'
                     }} />
+                    <Stack.Screen
+        name="AttnHistory"
+        component={AttnHistory}
+        options={{
+          headerShown: true,
+          drawerIcon: ({color}) => (
+            <Ionicons name="calendar-sharp" size={22} color={color} />
+          ),
+          headerStyle: {
+            backgroundColor: '#aa18ea',
+          },
+          title: 'Attendance History',
+          headerTintColor: 'white',
+        }}
+      />
                 <Stack.Screen
                     name='LeaveSts'
                     component={LeaveSts}
@@ -114,6 +160,59 @@ options={{headerShown:false}}/>
                         title: 'Reimbursement Status',
                         headerTintColor: 'white'
                     }} />
+                      <Stack.Screen
+        name="Reimbursement"
+        component={Reimbursement}
+        options={{
+          headerShown: true,
+          drawerIcon: ({color}) => (
+            <FontAwesome5 name="file-invoice-dollar" size={22} color={color} />
+          ),
+          headerStyle: {
+            backgroundColor: '#aa18ea',
+          },
+          headerTintColor: 'white',
+          title: 'Reimbursement',
+        }}
+      />
+       <Stack.Screen
+        name="holidays"
+        component={HolidayList}
+        options={{
+          headerShown: true,
+          drawerIcon: ({color}) => (
+            <MaterialCommunityIcons
+              name="file-document-outline"
+              size={22}
+              color={color}
+            />
+          ),
+          headerStyle: {
+            backgroundColor: '#aa18ea',
+          },
+          headerTintColor: 'white',
+          title: 'My Holidays',
+        }}
+      />
+       <Stack.Screen
+        name="Salaryslip"
+        component={Salaryslip}
+        options={{
+          headerShown: true,
+          drawerIcon: ({color}) => (
+            <MaterialCommunityIcons
+              name="file-document-outline"
+              size={22}
+              color={color}
+            />
+          ),
+          headerStyle: {
+            backgroundColor: '#aa18ea',
+          },
+          headerTintColor: 'white',
+          title: 'My Salary Slip',
+        }}
+      />
             </Stack.Navigator>
         </NavigationContainer>
     )

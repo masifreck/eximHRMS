@@ -129,7 +129,7 @@ export const SalaryHTML = (salaryDetail) => {
       <tr>
         <td>House Rent Allowance</td><td>${salaryDetail.HRA}</td>
         <td>PF Admin</td><td>${salaryDetail.PFAdminCharges}</td>
-        <td>EPS Remitted</td><td>${salaryDetail.EPSRemitted}</td>
+        <td>Pension Fund</td><td>${salaryDetail.EPSRemitted}</td>
       </tr>
       <tr>
         <td>Conveyance</td><td>${salaryDetail.Conveyance}</td>

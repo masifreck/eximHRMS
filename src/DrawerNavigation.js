@@ -146,7 +146,7 @@ const DrawerNavigation = () => {
           headerShown: true,
           drawerIcon: ({color}) => (
             <MaterialCommunityIcons
-              name="file-document-outline"
+              name="calendar-star"
               size={22}
               color={color}
             />

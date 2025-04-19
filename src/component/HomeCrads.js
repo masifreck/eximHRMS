@@ -2,36 +2,81 @@ import { View, Text, Image, StyleSheet,Dimensions } from 'react-native'
 import React from 'react'
 import { TouchableOpacity } from 'react-native-gesture-handler'
 const deviceWidth = Dimensions.get('window').width;
-const HomeCrads = () => {
+const HomeCrads = ({navigation}) => {
   return (
     <View style={styles.container}>
       <View style={styles.row}>
         <Card
           image={require('../assets/atthhome.png')}
           label="Attendance History"
+          NavigationValue='AttnHistory'
         />
         <Card
-          image={require('../assets/profilehome.jpg')}
+          image={require('../assets/profile2home.webp')}
           label="My Profile"
+          NavigationValue='EProfile'
         />
       </View>
       <View style={styles.row}>
         <Card
-          image={require('../assets/profilehome.jpg')}
-          label="Something Else"
+          image={require('../assets/leavehome.webp')}
+          label="Leave"
+           NavigationValue='Leave'
         />
-        {/* Add more cards here if needed */}
+         <Card
+          image={require('../assets/newleavehome.png')}
+          label="Apply Leave"
+          NavigationValue='NewLeave'
+          
+        />
+        
+      </View>
+      <View style={styles.row}>
+        <Card
+          image={require('../assets/reimbursementhome.png')}
+          label="Reimbursement"
+           NavigationValue='Reimbursement'
+        />
+         <Card
+          image={require('../assets/newreimbursementhome.png')}
+          label="Apply Reimbursement"
+           NavigationValue='NewReimbursementRequest'
+        />
+        
+      </View>
+      <View style={styles.row}>
+        <Card
+          image={require('../assets/holidayhome2.png')}
+          label="My Holidays"
+           NavigationValue='holidays'
+        />
+         <Card
+          image={require('../assets/salaryhome.png')}
+          label="Salary Slip"
+ NavigationValue='Salaryslip'
+        />
+        
       </View>
     </View>
   )
 }
+import { useNavigation } from '@react-navigation/native';
+const Card = ({ image, label, NavigationValue }) => {
+  const navigation = useNavigation();
+  return (
+    <TouchableOpacity
+      style={styles.card}
+      onPress={() => {
+        if (NavigationValue) {
+          navigation.navigate(NavigationValue);
+        }
+      }}
+    >
+      <Image source={image} style={styles.image} />
+      <Text style={styles.label}>{label}</Text>
+    </TouchableOpacity>
+  );}
 
-const Card = ({ image, label }) => (
-  <TouchableOpacity style={styles.card}>
-    <Image source={image} style={styles.image} />
-    <Text style={styles.label}>{label}</Text>
-  </TouchableOpacity>
-)
 
 const styles = StyleSheet.create({
   container: {
@@ -43,7 +88,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 15,
-backgroundColor:'red'
+
   },
   card: {
     
@@ -55,8 +100,8 @@ backgroundColor:'red'
     alignItems: 'center',
   },
   image: {
-    width: 100,
-    height: 100,
+    width: 80,
+    height: 80,
     resizeMode: 'contain',
   },
   label: {

@@ -6,26 +6,32 @@ import {
   Text,
   TouchableOpacity,
   View,ActivityIndicator,
-  Alert,Dimensions} from 'react-native';
+  Alert,Dimensions,Modal} from 'react-native';
 
 
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { textcolor } from '../constants/color';
+import { darkColor, textcolor } from '../constants/color';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 // import AttSummary from '../component/AttnSummary';
 const { width } = Dimensions.get('window');
 const COLUMN_WIDTH = width / 3;
 function AttnHistory({navigation}) {
   const [Details,setData]=useState([])
+  
+  const [selectedLogInTime, setSelectedLogInTime] = useState('');
+  const [modalVisible, setModalVisible] = useState(false);
+const [selectedAttendance, setSelectedAttendance] = useState(null);
+
   useEffect(() => {
     const checkLoginStatus = async () => {
       try {
         // Retrieve mobile number and token from AsyncStorage
         const mobileNo = await AsyncStorage.getItem('mobileNo');
         const token = await AsyncStorage.getItem('access_token');
-
+        const details = await AsyncStorage.getItem("employeeDetails");
+        const parsedDetails = JSON.parse(details);
         // If token or mobile number is missing, navigate to login
         if (!mobileNo || !token) {
           navigation.replace('newlogin');
@@ -33,7 +39,7 @@ function AttnHistory({navigation}) {
         }
 
         // Call the API with the mobile number and bearer token
-        const url = `https://hrexim.tranzol.com/api/Attendance/AttendanceLatest?mobileno=${mobileNo}`;
+        const url = `https://hrexim.tranzol.com/api/Employee/GetAttendancePerDay?employeeId=${parsedDetails.EmployeeId}`;
         const response = await fetch(url, {
           method: 'GET',
           headers: {
@@ -44,17 +50,17 @@ function AttnHistory({navigation}) {
 
         if (!response.ok) {
           //navigation.replace('newlogin');
-          throw new Error('Invalid response from server');
+          throw new Error(`Invalid response from server. Status code: ${response.status}`);
         }
 
         const AttendanceLatest = await response.json();
-        const dat=AttendanceLatest.data.Result
-         setData(dat);
-        console.log(Details)
+        
+         setData(AttendanceLatest);
+         //console.log('latest attn', AttendanceLatest)
       } catch (error) {
         console.error('Error fetching employee data:', error.message);
         // Navigate to login on error
-        navigation.replace('newlogin');
+        //navigation.replace('newlogin');
       }
     };
     checkLoginStatus()
@@ -119,6 +125,9 @@ function AttnHistory({navigation}) {
         Alert.alert('Invalid Input', 'Please choose a valid date range.');
         return;
       }
+      const details = await AsyncStorage.getItem("employeeDetails");
+      const parsedDetails = JSON.parse(details);
+      
       // If token or mobile number is missing, navigate to login
       if (!mobileNo || !token) {
         navigation.replace('newlogin');
@@ -126,7 +135,7 @@ function AttnHistory({navigation}) {
       }
 
       // Call the API with the mobile number and bearer token
-      const url = `https://hrexim.tranzol.com/api/Attendance/AttendanceDetails?mobileno=${mobileNo}&fromdate=${FromDate}&todate=${ToDate}`;
+      const url = `https://hrexim.tranzol.com/api/Employee/GetAttendanceAnalysis?employeeId=${parsedDetails.EmployeeId}&startDate=${FromDate}&endDate=${ToDate}`;
       const response = await fetch(url, {
         method: 'GET',
         headers: {
@@ -137,12 +146,12 @@ function AttnHistory({navigation}) {
 
       if (!response.ok) {
         //navigation.replace('newlogin');
-        throw new Error('Invalid response from server');
+        throw new Error(`Invalid response from server. Status code: ${response.status}`);
       }
 
       const AttendanceLatest = await response.json();
-      setAttendanceData(AttendanceLatest.data.Result); // Store fetched data
-      //console.log('month wise attendance',AttendanceLatest.data.Result)
+      setAttendanceData(AttendanceLatest); // Store fetched data
+      //console.log('month wise attendance',AttendanceLatest)
       setLoading(false); // Set loading to false when data is fetched
     } catch (error) {
       console.error('Error fetching employee data:', error.message);
@@ -151,28 +160,58 @@ function AttnHistory({navigation}) {
       setLoading(false);
     }
   };
+  const leaveTypeMap = {
+    CL: { label: 'Casual Leave', icon: 'umbrella-beach',iconcolor:'' },
+    SL: { label: 'Sick Leave', icon: 'hospital' },
+    EL: { label: 'Earned Leave', icon: 'calendar-check' },
+    ML: { label: 'Maternity Leave', icon: 'baby-face-outline' },
+    PAT: { label: 'Paternity Leave', icon: 'baby-carriage' },
+    MAL: { label: 'Marriage Leave', icon: 'ring' },
+    COL: { label: 'Compensatory Leave', icon: 'calendar-clock' },
+    LOP: { label: 'Loss of Pay', icon: 'currency-usd-off' },
+    OD: { label: 'On Duty', icon: 'briefcase-account' },
+    WO: { label: 'Weekly Off', icon: 'calendar-weekend' },
+    SPL: { label: 'Special Leave', icon: 'star-circle' },
+    HF: { label: 'Half Day', icon: 'weather-sunset',iconcolor:'#ffd700'  },         // 🌇 half day
+    NH: { label: 'National Holiday', icon: 'flag-variant' ,},   // 🏳️ national holiday
+    AB: { label: 'Absent', icon: 'account-off' ,iconcolor:'red' },
+    FD: {label :'Full Day',icon :'briefcase-account',iconcolor:'green'}              // 🙅 absent
+  };
+  
+  
+  const testCode = Details?.Test;
+  
+  const leaveInfo = leaveTypeMap[testCode] || { label: testCode || '--', icon: 'help-outline' };
+    
   return (
     <ScrollView >
       {/* <SafeAreaView style={styles.container}> */}
     
 
       <View style={styles.daillySummary}>
+        <View style={{backgroundColor:darkColor,paddingHorizontal:10,paddingVertical:5,borderRadius:10}}>
         <Text style={styles.headerText}>
           <Icon name="clipboard-text-clock-outline" size={18} color="white" /> Latest Attendance Report
         </Text>
+        </View>
         <View style={styles.timeContainer}>
           <View style={styles.row}>
-            <Icon name="calendar" size={18} color="#3e0961" style={styles.icon} />
-            <Text style={styles.timeText}>Date: {Details.LogInDate ? Details.LogInDate.split('T')[0] : ''}</Text>
+            <Icon name="calendar" size={18} color="blue" style={styles.icon} />
+            <Text style={styles.timeText}>Date: {Details.ProcessDate ? Details.ProcessDate.split('T')[0] : ''}</Text>
           </View>
           <View style={styles.row}>
-            <Icon name="login" size={18} color="#3e0961" style={styles.icon} />
+            <Icon name="login" size={18} color="green" style={styles.icon} />
             <Text style={styles.timeText}>Punch In Time: {Details.LogInTime || '--'}</Text>
           </View>
           <View style={styles.row}>
-            <Icon name="logout" size={18} color="#3e0961" style={styles.icon} />
+            <Icon name="logout" size={18} color="red" style={styles.icon} />
             <Text style={styles.timeText}>Punch Out Time: {Details.LogOutTime || '--'}</Text>
           </View>
+          <View style={styles.row}>
+  <Icon name={leaveInfo.icon} size={18} color={leaveInfo.iconcolor ||"#3e0961"} style={styles.icon} />
+  <Text style={styles.timeText}>Status: {leaveInfo.label}</Text>
+</View>
+
         </View>
       </View>
       <View style={{backgroundColor:'#3e0961',padding:10,margin:10,elevation:4,borderRadius:10,flexDirection:'row',justifyContent:'space-between'}}>
@@ -214,7 +253,7 @@ function AttnHistory({navigation}) {
       ) : (
         // ScrollView to display the attendance data
         <ScrollView horizontal>
-        <View style={{flex:1,width:width}}>
+        <View style={{flex:1,width:width*0.9}}>
           {/* Table Header */}
           <View style={styles.headerRow}>
             <View style={styles.headerCell}>
@@ -233,25 +272,112 @@ function AttnHistory({navigation}) {
   
           {/* Table Rows */}
           {attendanceData.map((attendance, index) => (
-            <View
-              key={index}
-              style={[
-                styles.row,
-                { backgroundColor: index % 2 === 0 ? '#fff' : '#f5f5f5' },
-              ]}
-            >
-              <Text style={styles.cell}>{attendance.ProcessDate?.split('T')[0]}</Text>
-              <Text style={styles.cell}>{attendance.LogInTime}</Text>
-              <Text style={styles.cell}>{attendance.LogOutTime? attendance.LogOutTime : '' }</Text>
-            </View>
-          ))}
+  <View
+    key={index}
+    style={[
+      styles.row,
+      {
+        backgroundColor: index % 2 === 0 ? '#f9f7f3' : '#fff1e6',
+        alignItems: 'center',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        paddingRight: 10,
+      },
+    ]}
+  >
+    <View style={{ flexDirection: 'row', flex: 1 }}>
+      <Text style={[styles.cell, { paddingVertical: 15, marginLeft: 10 }]}>
+        {attendance.ShiftDate?.split('T')[0]}
+      </Text>
+      <Text style={[styles.cell, { paddingVertical: 15}]}>
+        {attendance.LogInTime}
+      </Text>
+      <Text style={[styles.cell, { paddingVertical: 15}]}>
+        {attendance.LogOutTime ? attendance.LogOutTime : ''}
+      </Text>
+    </View>
+
+    {/* Icon to open modal */}
+    <TouchableOpacity
+      onPress={() => {
+        setSelectedAttendance(attendance); // Save full attendance object
+        setModalVisible(true);
+      }}
+    >
+      <Icon name="chevron-double-right" size={30} color={textcolor} />
+    </TouchableOpacity>
+  </View>
+))}
+{selectedAttendance && (
+  <Modal
+    animationType="slide"
+    transparent={true}
+    visible={modalVisible}
+    onRequestClose={() => setModalVisible(false)}
+  >
+    <View style={styles.modalBackground}>
+      <View style={styles.modalContainer}>
+        {/* Close Icon */}
+        <TouchableOpacity style={styles.closeIcon} onPress={() => setModalVisible(false)}>
+          <Icon name="close-circle" size={30} color="#333" />
+        </TouchableOpacity>
+
+        <Text style={styles.modalTitle}>Attendance Details</Text>
+
+        {/* Aligned rows */}
+        <View style={styles.row}>
+          <Text style={styles.label}>Shift Date:</Text>
+          <Text style={styles.value}>{selectedAttendance.ShiftDate?.split('T')[0]}</Text>
+        </View>
+
+        <View style={styles.row}>
+          <Text style={styles.label}>Shift Name:</Text>
+          <Text style={styles.value}>{selectedAttendance.ShiftName}</Text>
+        </View>
+
+        <View style={styles.row}>
+          <Text style={styles.label}>From:</Text>
+          <Text style={styles.value}>{selectedAttendance.FromTime}</Text>
+        </View>
+
+        <View style={styles.row}>
+          <Text style={styles.label}>To:</Text>
+          <Text style={styles.value}>{selectedAttendance.ToTime}</Text>
+        </View>
+
+        <View style={styles.row}>
+          <Text style={styles.label}>Log In:</Text>
+          <Text style={styles.value}>{selectedAttendance.LogInTime}</Text>
+        </View>
+
+        <View style={styles.row}>
+          <Text style={styles.label}>Log Out:</Text>
+          <Text style={styles.value}>{selectedAttendance.LogOutTime || 'N/A'}</Text>
+        </View>
+
+        <View style={styles.row}>
+          <Text style={styles.label}>Status:</Text>
+          <Text style={styles.value}>{selectedAttendance.Test}</Text>
+        </View>
+
+        <View style={styles.row}>
+          <Text style={styles.label}>Total Minutes:</Text>
+          <Text style={styles.value}>{selectedAttendance.TotalMinute}</Text>
+        </View>
+      </View>
+    </View>
+  </Modal>
+)}
         </View>
       </ScrollView>
       
       
       )}
     </View>
+ 
+
     </ScrollView>
+    
   );
 }
 
@@ -376,7 +502,7 @@ const styles = StyleSheet.create({
   },
   row: {
     flexDirection: 'row',
-    paddingVertical: 10,
+    paddingVertical: 2,
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',
   
@@ -384,8 +510,49 @@ const styles = StyleSheet.create({
   cell: {
     flex: 1,
     paddingHorizontal: 5,
-    color: '#333',  width:COLUMN_WIDTH
+    color: textcolor,  width:COLUMN_WIDTH,fontWeight:'bold'
   },
+  modalBackground: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  modalContainer: {
+    width: '90%',
+    padding: 20,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    elevation: 5,
+    position: 'relative',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 20,
+    color:darkColor
+  },
+  closeIcon: {
+    position: 'absolute',
+    right: 15,
+    top: 15,
+    zIndex: 1,
+  },
+
+  label: {
+    fontWeight: '600',
+    color: darkColor,
+    width: '45%',
+
+  },
+  value: {
+    color: textcolor,
+    width: '50%',
+    textAlign: 'right',
+    fontWeight:'bold'
+  },
+  
 });
 
 export default AttnHistory;
