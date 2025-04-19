@@ -5,16 +5,18 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,ActivityIndicator
-} from 'react-native';
+  View,ActivityIndicator,
+  Alert,Dimensions} from 'react-native';
 
 
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { textcolor } from '../constants/color';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 // import AttSummary from '../component/AttnSummary';
-
+const { width } = Dimensions.get('window');
+const COLUMN_WIDTH = width / 3;
 function AttnHistory({navigation}) {
   const [Details,setData]=useState([])
   useEffect(() => {
@@ -58,11 +60,7 @@ function AttnHistory({navigation}) {
     checkLoginStatus()
   }, [navigation]);
   const [selectedDate, setSelectedDate] = useState(null);
-  const [punchData, setPunchData] = useState({
-    '2023-06-01': { punchIn: '09:30 AM', punchOut: '05:00 PM' },
-    '2023-06-02': { punchIn: '08:45 AM', punchOut: '05:15 PM' },
-    // Add more punch data for other dates
-  });
+
  const [FromDate, setFromDate] = useState('Start Date');
   const [ToDate, setToDate] = useState('End Date');
    const [isStartDatePickerVisible, setStartDatePickerVisible] = useState(false);
@@ -72,72 +70,6 @@ function AttnHistory({navigation}) {
   const handleDayPress = (day) => {
     setSelectedDate(day.dateString);
   };
-
-  
-
-
-
-  
-  //   return (
-  //     <View style={{
-  //       backgroundColor: 'white',
-  //       marginTop: 20,
-  //       marginHorizontal: 10,
-  //       padding: 10,
-  //       borderRadius: 10,
-  //       shadowColor: 'black',
-  //       shadowOffset: {
-  //         width: 1,
-  //         height: 2,
-  //       },
-  //       shadowOpacity: 0.25,
-  //       shadowRadius: 3.84,
-  //       elevation: 5,
-  //     }}>
-  //       <View
-  //         style={{
-  //           flexDirection: 'row',
-  //           justifyContent: 'space-between',
-  //           marginBottom: 10,
-  //         }}>
-  //         <View
-  //           style={{
-  //             flexDirection: 'row',
-  //             alignItems: 'center',
-  //             // width: 120,
-  //             marginLeft: 20,
-  //           }}>
-  //           {renderDot('green')}
-  //           <Text style={{ color: 'gray' }}>Perfect Time: 47%</Text>
-  //         </View>
-  //         <View
-  //           style={{ flexDirection: 'row', alignItems: 'center', width: 120 }}>
-  //           {renderDot('orange')}
-  //           <Text style={{ color: 'gray' }}>Half Day: 16%</Text>
-  //         </View>
-  //       </View>
-  //       <View style={{ flexDirection: 'row', justifyContent: 'space-between', }}>
-  //         <View
-  //           style={{
-  //             flexDirection: 'row',
-  //             alignItems: 'center',
-  //             // width: 120,
-  //             marginLeft: 20,
-  //           }}>
-  //           {renderDot('red')}
-
-  //           <Text style={{ color: 'gray' }}>lateComing: 23%</Text>
-
-  //         </View>
-  //         <View
-  //           style={{ flexDirection: 'row', alignItems: 'center', width: 120 }}>
-  //           {renderDot('#3BE9DE')}
-  //           <Text style={{ color: 'gray' }}>Leave: 40%</Text>
-  //         </View>
-  //       </View>
-  //     </View>
-  //   );
-  // };
 
   const showStartDatePicker = () => {
     setStartDatePickerVisible(true);
@@ -179,10 +111,14 @@ function AttnHistory({navigation}) {
 
   const GetSelectedAttendance = async () => {
     try {
+      setLoading(true);
       // Retrieve mobile number and token from AsyncStorage
       const mobileNo = await AsyncStorage.getItem('mobileNo');
       const token = await AsyncStorage.getItem('access_token');
-
+      if (FromDate === 'Start Date' || ToDate === 'End Date') {
+        Alert.alert('Invalid Input', 'Please choose a valid date range.');
+        return;
+      }
       // If token or mobile number is missing, navigate to login
       if (!mobileNo || !token) {
         navigation.replace('newlogin');
@@ -200,16 +136,19 @@ function AttnHistory({navigation}) {
       });
 
       if (!response.ok) {
-        navigation.replace('newlogin');
+        //navigation.replace('newlogin');
         throw new Error('Invalid response from server');
       }
 
       const AttendanceLatest = await response.json();
       setAttendanceData(AttendanceLatest.data.Result); // Store fetched data
+      //console.log('month wise attendance',AttendanceLatest.data.Result)
       setLoading(false); // Set loading to false when data is fetched
     } catch (error) {
       console.error('Error fetching employee data:', error.message);
-      navigation.replace('newlogin');
+      //navigation.replace('newlogin');
+    }finally{
+      setLoading(false);
     }
   };
   return (
@@ -217,29 +156,24 @@ function AttnHistory({navigation}) {
       {/* <SafeAreaView style={styles.container}> */}
     
 
-      <View style={styles.summaryContainer}>
-        <View style={styles.daillySummary}>
-          <Text style={{
-            fontWeight: 'bold',
-            textAlign: 'center',
-            paddingVertical: 8,
-            fontSize: 16,
-            color: 'white',
-            backgroundColor: '#3e0961',
-          }}>Latest Attendance Report</Text>
-            <View style={styles.timeContainer}>
-              <Text style={{ color: 'black', fontSize: 14, textAlign: 'center', fontWeight: '600' }}>Punch In Time</Text>
-              <Text style={{ color: textcolor, fontSize: 13, textAlign: 'center', fontWeight: '700', marginTop: 6 }}>
-                {Details.LogInTime+' '}
-                {Details.LogInDate?Details.LogInDate.split('T')[0]:''}</Text>
-              <Text style={{ color: 'black', fontSize: 14, textAlign: 'center', fontWeight: '600', marginTop: 6 }}>Punch Out Time</Text>
-              <Text style={{ color: textcolor, fontSize: 13, textAlign: 'center', fontWeight: '700', marginTop: 6 }}> {Details.LogOutTime+' '}
-              {Details.LogOutDate?Details.LogOutDate.split('T')[0]:''}</Text>
-            </View>
-          
-
+      <View style={styles.daillySummary}>
+        <Text style={styles.headerText}>
+          <Icon name="clipboard-text-clock-outline" size={18} color="white" /> Latest Attendance Report
+        </Text>
+        <View style={styles.timeContainer}>
+          <View style={styles.row}>
+            <Icon name="calendar" size={18} color="#3e0961" style={styles.icon} />
+            <Text style={styles.timeText}>Date: {Details.LogInDate ? Details.LogInDate.split('T')[0] : ''}</Text>
+          </View>
+          <View style={styles.row}>
+            <Icon name="login" size={18} color="#3e0961" style={styles.icon} />
+            <Text style={styles.timeText}>Punch In Time: {Details.LogInTime || '--'}</Text>
+          </View>
+          <View style={styles.row}>
+            <Icon name="logout" size={18} color="#3e0961" style={styles.icon} />
+            <Text style={styles.timeText}>Punch Out Time: {Details.LogOutTime || '--'}</Text>
+          </View>
         </View>
-    
       </View>
       <View style={{backgroundColor:'#3e0961',padding:10,margin:10,elevation:4,borderRadius:10,flexDirection:'row',justifyContent:'space-between'}}>
   <TouchableOpacity style={styles.date} onPress={showStartDatePicker}>
@@ -253,7 +187,10 @@ function AttnHistory({navigation}) {
        <TouchableOpacity style={{backgroundColor:'#aa18ea',borderRadius:10,elevation:4,width:'25%',justifyContent:'center',alignItems:'center'}}
        onPress={GetSelectedAttendance}
        >
-        <Text style={{color:'white',fontSize:11,fontWeight:'bold'}}>GET DETAILS</Text>
+         {loading ? (
+        <ActivityIndicator size="large" color="#0000ff" />
+      ) : (
+        <Text style={{color:'white',fontSize:11,fontWeight:'bold'}}>GET DETAILS</Text>)}
        </TouchableOpacity>
 
         <DateTimePickerModal
@@ -276,42 +213,42 @@ function AttnHistory({navigation}) {
         <ActivityIndicator size="large" color="#0000ff" />
       ) : (
         // ScrollView to display the attendance data
-        <ScrollView>
-          {attendanceData.map((attendance, index) => (
-            <View key={index} style={{ marginBottom: 20, padding: 10, backgroundColor: 'white', borderRadius: 8,paddingHorizontal:20,elevation:4 }}>
-            <Text style={{ fontWeight: 'bold', fontSize: 16, color: 'white',backgroundColor:'#3e0961',borderRadius:10,
-              textAlign:'center',padding:3
-            }}>
-              {attendance.ProcessDate.split('T')[0]}
-            </Text>
-          
-            {/* Log In Time */}
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginVertical: 6 }}>
-              <Text style={styles.attntext}>Log In Time:</Text>
-              <Text style={styles.attntext}>{attendance.LogInTime}</Text>
+        <ScrollView horizontal>
+        <View style={{flex:1,width:width}}>
+          {/* Table Header */}
+          <View style={styles.headerRow}>
+            <View style={styles.headerCell}>
+            <Icon name="calendar" size={18} color="#fff" style={styles.icon} />
+              <Text style={styles.headerText}> Date</Text>
             </View>
-          
-            {/* Log Out Time */}
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginVertical: 6 }}>
-              <Text style={styles.attntext}>Log Out Time:</Text>
-              <Text style={styles.attntext}>{attendance.LogOutTime}</Text>
+            <View style={styles.headerCell}>
+              <Icon name="login" size={16} color="#fff" />
+              <Text style={styles.headerText}> Log In</Text>
             </View>
-          
-            {/* Log In Date */}
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginVertical: 6 }}>
-              <Text style={styles.attntext}>Log In Date:</Text>
-              <Text style={styles.attntext}>{attendance.LogInDate.split('T')[0]}</Text>
-            </View>
-          
-            {/* Log Out Date */}
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginVertical: 6 }}>
-              <Text style={styles.attntext}>Log Out Date:</Text>
-              <Text style={styles.attntext}>{attendance.LogOutDate.split('T')[0]}</Text>
+            <View style={styles.headerCell}>
+              <Icon name="logout" size={16} color="#fff" />
+              <Text style={styles.headerText}> Log Out</Text>
             </View>
           </View>
-          
+  
+          {/* Table Rows */}
+          {attendanceData.map((attendance, index) => (
+            <View
+              key={index}
+              style={[
+                styles.row,
+                { backgroundColor: index % 2 === 0 ? '#fff' : '#f5f5f5' },
+              ]}
+            >
+              <Text style={styles.cell}>{attendance.ProcessDate?.split('T')[0]}</Text>
+              <Text style={styles.cell}>{attendance.LogInTime}</Text>
+              <Text style={styles.cell}>{attendance.LogOutTime? attendance.LogOutTime : '' }</Text>
+            </View>
           ))}
-        </ScrollView>
+        </View>
+      </ScrollView>
+      
+      
       )}
     </View>
     </ScrollView>
@@ -325,6 +262,9 @@ const styles = StyleSheet.create({
   },
   timeContainer: {
     marginTop: 8
+  },
+  tableCell:{
+    width:'30%'
   },
   attntext:{
     color:textcolor,fontWeight:'bold'
@@ -368,7 +308,7 @@ const styles = StyleSheet.create({
   },
   daillySummary: {
     marginTop:10,
-    width: '100%',
+    width: '97%',
     height: 200,
     backgroundColor: 'white',
     borderRadius: 10,
@@ -380,16 +320,71 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
-    overflow: 'hidden'
+    overflow: 'hidden',margin:10,
+    padding:16
   },
   weeklySummary: {
     width: '58%',
     height: 200,
     // backgroundColor : 'green'
   },
+  headerText: {
+    fontWeight: 'bold',
+    textAlign: 'center',
+    paddingVertical: 10,
+    fontSize: 17,
+    color: 'white',
+    backgroundColor: '#3e0961',
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  timeContainer: {
+    marginTop: 16,
+    gap: 10,
+  },
   row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  icon: {
+    marginRight: 8,
+  },
+  timeText: {
+    color: '#333',
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  headerRow: {
+    flexDirection: 'row',
+    backgroundColor: '#3e0961',
+    paddingVertical: 12,
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
+    elevation: 4,
+  },
+  headerCell: {
     flex: 1,
     flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 5,
+    width:COLUMN_WIDTH,
+  },
+  headerText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  row: {
+    flexDirection: 'row',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+  
+  },
+  cell: {
+    flex: 1,
+    paddingHorizontal: 5,
+    color: '#333',  width:COLUMN_WIDTH
   },
 });
 

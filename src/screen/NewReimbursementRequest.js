@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Dimensions, Image, FlatList, TextInput, ScrollView, LogBox, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Dimensions, Image, FlatList, TextInput, ScrollView, LogBox, Alert, ActivityIndicator } from 'react-native';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import DocumentPicker from 'react-native-document-picker';
 import Uploading from '../component/Uploading';
@@ -19,10 +19,13 @@ const NewReimbursementRequest = ({ navigation }) => {
     const [isVisible, setIsVisible] = useState(false);
 
     const [expenseData, setExpenseData] = useState([]);
-    const [selectedFile, setSelectedFile] = useState(null);
+    const [selectedFile, setSelectedFile] = useState([]);
+    const [selectedFiles, setSelectedFiles] = useState([]);
+
     const [employeeDetails,setEmployeeDetails]=useState('');
     const [Token,setToken]=useState('');
      const [EmployeeId, setEmployeeId] = useState('');
+     const [postLoading,setPostLoading]=useState(false);
    
     useEffect(() => {
      const checkLoginStatus = async () => {
@@ -52,8 +55,7 @@ const NewReimbursementRequest = ({ navigation }) => {
       const handleFileSelected = (files) => {
         console.log('Selected files:', files);
       
-        // For multiple files
-        setSelectedFile(files); // assuming you have `const [selectedFiles, setSelectedFiles] = useState([]);`
+        setSelectedFiles(files);
       
         files.forEach((file, index) => {
           console.log(`File ${index + 1}:`);
@@ -62,6 +64,7 @@ const NewReimbursementRequest = ({ navigation }) => {
           console.log('URI:', file.uri);
         });
       };
+      
       
 
     // Function to handle navigation to NewExpense screen
@@ -93,20 +96,115 @@ const NewReimbursementRequest = ({ navigation }) => {
             return updatedExpenseData;
         });
     };
-    // Function to render the list of expenses
+    function formatDate(dateStr) {
+        // Check if date is valid
+        if (!dateStr) return '';
+        console.log('received date',dateStr)
+        // Example: 18/04/2025 => 2025-04-18
+        const [day, month, year] = dateStr.split('/');
+        if (!day || !month || !year) return ''; // Invalid date format
+        
+        return `${year}-${month}-${day}`; // Convert to yyyy-mm-dd
+      }
       
-        const formData = [
-          { name: 'EmployeeId', data: EmployeeId.toString() }, // ✅ text field
-        //   { name: 'Latitude', data: latitude.toString() },     // ✅ text field
-        //   { name: 'Longitude', data: longitude.toString() }, 
-        //   {name:'MapUrl',data:`https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`} , // ✅ text field
-        //   {
-        //     name: 'Attachment',
-        //     filename: selectedFile.name,
-        //     type: selectedFile.type,
-        //     data: RNFetchBlob.wrap(cleanImagePath),
-        //   },
-        ];
+    // Function to render the list of expenses
+    const PostExpense = async () => {
+        try {
+          console.log("Expense Data:", expenseData); // Debugging
+      
+          // Validate the expenseData
+          if (!expenseData || !expenseData[0]?.selectedDate) {
+            Alert.alert('Missing Data', 'Please fill in the expense details.');
+            return;
+          }
+      
+          // Validate description
+          if (!description || description.trim() === '') {
+            Alert.alert('Missing Description', 'Please provide a journey description.');
+            return;
+          }
+      
+          // Validate attachments
+          if (!selectedFiles || selectedFiles.length === 0) {
+            Alert.alert('Missing Attachment', 'Please select at least one attachment.');
+            return;
+          }
+      
+          const token = await AsyncStorage.getItem('access_token');
+          setPostLoading(true);
+      
+          // Handle date formatting correctly
+          const formattedPickDate = formatDate(expenseData[0]?.selectedDate);
+      
+          if (!formattedPickDate) {
+            Alert.alert('Invalid Date', 'Please provide a valid date.');
+            return;
+          }
+      
+          // Prepare form data
+          const formData = [
+            { name: 'EmployeeId', data: EmployeeId?.toString() ?? '' },
+            { name: 'PickDate', data: formattedPickDate },
+            { name: 'JobNo', data: expenseData[0]?.jobNumber?.toString() ?? '' },
+            { name: 'FromPlace', data: expenseData[0]?.fromPlace?.toString() ?? '' },
+            { name: 'ToPlace', data: expenseData[0]?.toPlace?.toString() ?? '' },
+            { name: 'TravelTypeId', data: expenseData[0]?.travelType?.toString() ?? '' },
+            { name: 'Kilometers', data: expenseData[0]?.kilometers?.toString() ?? '' },
+            { name: 'Amount', data: expenseData[0]?.fare?.toString() ?? '' },
+            { name: 'Fooding', data: expenseData[0]?.fooding?.toString() ?? '' },
+            { name: 'Lodging', data: expenseData[0]?.lodging?.toString() ?? '' },
+            { name: 'Expense', data: expenseData[0]?.misc?.toString() ?? '' },
+            { name: 'Remarks', data: expenseData[0]?.remark?.toString() ?? '' },
+            { name: 'JourneyDescription', data: description?.toString() ?? '' },
+          ];
+      
+          // Attach selected files
+          selectedFiles.forEach((file, index) => {
+            formData.push({
+              name: `Attachment${index + 1}`,
+              filename: file.name,
+              type: file.type,
+              data: RNFetchBlob.wrap(file.uri.replace('file://', '')),
+            });
+          });
+      
+          console.log('Sending formData:', formData);
+      
+          // Send the formData to the API
+          const response = await RNFetchBlob.fetch('POST', 'https://hrexim.tranzol.com/api/Employee/AddReimbursement', {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data',
+          }, formData);
+      
+          // Log the response for debugging
+          const result = await response.text();  // Use .text() instead of .json() since it's a plain string
+          console.log('Server response:', result);
+      
+          // Check the response type
+          if (typeof result === 'string' && result.includes('Added Successfully')) {
+            Alert.alert('Success', 'Reimbursement added successfully.');
+            navigation.goBack();
+          } else {
+            Alert.alert('Failed', 'Submission failed. Please try again.');
+          }
+      
+        } catch (err) {
+          console.error('Error in PostExpense:', err);
+          Alert.alert('Error', 'Something went wrong while submitting the expense.');
+        } finally {
+          setPostLoading(false);
+        }
+      };
+      
+    
+      
+      
+      // Helper function for formatting the date correctly
+  
+      
+      
+      
+      
     const renderExpenseList = () => {
         return expenseData.map((expense, index) => (
             <View key={index} style={styles.expenseContainer}>
@@ -255,7 +353,8 @@ const NewReimbursementRequest = ({ navigation }) => {
            
 
             <View style={{ marginTop: 10, marginHorizontal: 20 }}>
-                <Text style={styles.txt}>Journey Description</Text>
+                <Text style={styles.txt}>Journey Description<Text style={{color:'red'
+                }}>*</Text></Text>
                 <TextInput
                     style={[styles.input]}
                     value={description}
@@ -274,8 +373,13 @@ const NewReimbursementRequest = ({ navigation }) => {
             </TouchableOpacity>)}
             <View style={styles.expenseList}>{renderExpenseList()}</View>
             {isVisible && expenseData.length > 0 ? (
-                <TouchableOpacity style={[styles.button, { marginBottom: 20 }]}>
-                    <Text style={styles.buttonText}>Submit Reimbursement Request</Text>
+                <TouchableOpacity style={[styles.button, { marginBottom: 20 }]} onPress={PostExpense} disabled={postLoading}>
+                  {postLoading ? (
+  <ActivityIndicator size="small" color="#fff" />
+) : (
+  <Text style={styles.buttonText}>Submit Reimbursement Request</Text>
+)}
+
                 </TouchableOpacity>
             ) : null}
         </ScrollView>

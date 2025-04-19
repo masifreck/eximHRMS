@@ -10,29 +10,72 @@ const deviceWidth = Dimensions.get('window').width;
 const NewExpense = ({ navigation, route }) => {
     // Function to handle saving the expense and returning to the previous screen
    
+    
+
     const handleSaveExpense = () => {
-        const total = Number(fare) + Number(fooding) + Number(lodging) + Number(misc);
-        const expenseDetails = {
-            selectedDate,
-            jobNumber,
-            fromPlace,
-            toPlace,
-            kilometers,
-            fare,
-            fooding,
-            lodging,
-            misc,
-            remark,
-            travelType,
-            total
-        };
-      
-        if (route.params && route.params.onSave) {
-            route.params.onSave(expenseDetails);
-           
-        }
-        navigation.goBack();
+      // Validate fields one by one
+      if (!selectedDate) {
+        Alert.alert("Validation Error", "Please select a date.");
+        return;
+      }
+      if (!travelType) {
+        Alert.alert("Validation Error", "Please select a travel type.");
+        return;
+      }
+    
+      if (!kilometers || isNaN(kilometers)) {
+        Alert.alert("Validation Error", "Please enter valid kilometers.");
+        return;
+      }
+    
+      if (!fare || isNaN(fare)) {
+        Alert.alert("Validation Error", "Please enter valid fare.");
+        return;
+      }
+    
+      if (!fooding || isNaN(fooding)) {
+        Alert.alert("Validation Error", "Please enter valid fooding amount.");
+        return;
+      }
+    
+      if (!lodging || isNaN(lodging)) {
+        Alert.alert("Validation Error", "Please enter valid lodging amount.");
+        return;
+      }
+    
+      if (!misc || isNaN(misc)) {
+        Alert.alert("Validation Error", "Please enter valid miscellaneous expense.");
+        return;
+      }
+    
+    
+    
+     
+    
+      // If all validations pass
+      const total = Number(fare) + Number(fooding) + Number(lodging) + Number(misc);
+      const expenseDetails = {
+        selectedDate,
+        jobNumber,
+        fromPlace,
+        toPlace,
+        kilometers,
+        fare,
+        fooding,
+        lodging,
+        misc,
+        remark,
+        travelType,
+        total
+      };
+    
+      if (route.params && route.params.onSave) {
+        route.params.onSave(expenseDetails);
+      }
+    
+      navigation.goBack();
     };
+    
     const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
     const [selectedDate, setSelectedDate] = useState('dd-mm-yyyy');
     const [jobNumber, setJobNumber] = useState('');

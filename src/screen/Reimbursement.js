@@ -3,83 +3,80 @@ import { View, Text, StyleSheet, TouchableOpacity, FlatList, ImageBackground } f
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Loading from '../component/Loading';
+import { useCallback } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 const Reimbursement = ({navigation}) => {
     const [activeTab, setActiveTab] = useState('pending');
      const [employeeDetails,setEmployeeDetails]=useState('');
      const [isloading,setIsLoading]=useState(false);
        const [data, setData] = useState([]);
        const [pendingRequests,setpendingRequests]=useState([])
-       useEffect(() => {
-        const checkLoginStatus = async () => {
-          try {
-            setIsLoading(true);
-            const details = await AsyncStorage.getItem("employeeDetails");
-            const token = await AsyncStorage.getItem('access_token');
+       useFocusEffect(
+        useCallback(() => {
+          const checkLoginStatus = async () => {
+            try {
+              setIsLoading(true);
+              const details = await AsyncStorage.getItem("employeeDetails");
+              const token = await AsyncStorage.getItem('access_token');
       
-            if (details !== null) {
-              const parsedDetails = JSON.parse(details);
-              setEmployeeDetails(parsedDetails);
+              if (details !== null) {
+                const parsedDetails = JSON.parse(details);
+                setEmployeeDetails(parsedDetails);
       
-              const url = `https://hrexim.tranzol.com/api/Employee/GetReimbursement?EmployeeId=${parsedDetails.EmployeeId}`;
-              console.log('url', url);
+                const url = `https://hrexim.tranzol.com/api/Employee/GetReimbursement?EmployeeId=${parsedDetails.EmployeeId}`;
+                console.log('url', url);
       
-              const response = await fetch(url, {
-                method: 'GET',
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                  'Content-Type': 'application/json',
-                },
-              });
+                const response = await fetch(url, {
+                  method: 'GET',
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                  },
+                });
       
-              if (!response.ok) {
-                throw new Error('Invalid response from server');
+                if (!response.ok) {
+                  throw new Error('Invalid response from server');
+                }
+      
+                const responseText = await response.text();
+                const dat = JSON.parse(responseText);
+      
+                const formatted = dat.map(item => ({
+                  id: item.Id,
+                  employeeId: item.EmployeeId,
+                  createDate: new Date(item.CreateDate).toLocaleDateString(),
+                  pickDate: item.PickDate ? new Date(item.PickDate).toLocaleDateString() : null,
+                  jobNo: item.JobNo,
+                  fromPlace: item.FromPlace,
+                  toPlace: item.ToPlace,
+                  travelTypeId: item.TravelTypeId,
+                  travelTypeName: item.TravelTypeName,
+                  kilometers: item.Kilometers,
+                  amount: item.Amount,
+                  fooding: item.Fooding,
+                  lodging: item.Lodging,
+                  expense: item.Expense,
+                  remarks: item.Remarks,
+                  claimAmount: item.ClaimAmount,
+                  approvedAmount: item.ApproveAmount,
+                  actionBy: item.ActionBy,
+                  ActionHead: item.ActionHead,
+                  Status: item.Status,
+                  ReimbursementId:item.ReimbursementId,
+                }));
+      
+                setpendingRequests(formatted);
               }
-      
-              const responseText = await response.text(); // Get the raw response text first
-             // console.log('Raw response:', responseText); // Log the raw response text
-          
-              // Now try parsing it
-              const dat = JSON.parse(responseText); // Parse it only if it's valid JSON
-             // console.log('Parsed response:', dat);
-          
-      
-              // Format data for UI
-              const formatted = dat.map(item => ({
-                id: item.Id,
-                employeeId: item.EmployeeId,
-                createDate: new Date(item.CreateDate).toLocaleDateString(),
-                pickDate: item.PickDate ? new Date(item.PickDate).toLocaleDateString() : null,
-                jobNo: item.JobNo,
-                fromPlace: item.FromPlace,
-                toPlace: item.ToPlace,
-                travelTypeId: item.TravelTypeId,
-                travelTypeName: item.TravelTypeName,
-                kilometers: item.Kilometers,
-                amount: item.Amount,
-                fooding: item.Fooding,
-                lodging: item.Lodging,
-                expense: item.Expense,
-                remarks: item.Remarks,
-                claimAmount: item.ClaimAmount,
-                approvedAmount: item.ApproveAmount,
-                actionBy: item.ActionBy,
-                ActionHead:item.ActionHead,
-                Status:item.Status,
-                // Do NOT include Attachment here
-              }));
-              
-      
-              setpendingRequests(formatted);
+            } catch (error) {
+              console.error('Error fetching employee data:', error.message);
+            } finally {
+              setIsLoading(false);
             }
-          } catch (error) {
-            console.error('Error fetching employee data:', error.message);
-          } finally {
-            setIsLoading(false);
-          }
-        };
+          };
       
-        checkLoginStatus();
-      }, []);
+          checkLoginStatus();
+        }, [])
+      );
       
       if (data?.Status === 'Approve') {
         statusColor = 'green';
@@ -88,6 +85,7 @@ const Reimbursement = ({navigation}) => {
       } else if (data?.Status === 'Reject' || data?.Status === 'Rejected') {
         statusColor = 'red';
       }
+      if (isloading) return <Loading />;
 
     const history = [
         {

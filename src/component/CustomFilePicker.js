@@ -27,41 +27,54 @@ const CustomFilePicker = ({ onFileSelected }) => {
       const result = await launchImageLibrary({
         mediaType: 'photo',
         quality: 1,
-        selectionLimit: 0, // allow multiple images
+        selectionLimit: 0,
       });
-
+  
       if (result.assets?.length > 0) {
-        const files = result.assets.map((img) => ({
+        const newFiles = result.assets.map((img) => ({
           uri: img.uri,
           name: img.fileName || `image_${Date.now()}.jpg`,
           type: img.type || 'image/jpeg',
           isPdf: false,
         }));
-
-        const updated = [...selectedFiles, ...files];
+  
+        const totalFiles = selectedFiles.length + newFiles.length;
+  
+        if (totalFiles > 6) {
+          Alert.alert('Limit Reached', 'You can select a maximum of 6 files.');
+          return;
+        }
+  
+        const updated = [...selectedFiles, ...newFiles];
         setSelectedFiles(updated);
-        onFileSelected?.(updated); // Send updated list to parent
+        onFileSelected?.(updated);
       }
     } catch (error) {
       Alert.alert('Error', error.message);
     }
   };
-
   const handlePickPDFs = async () => {
     closePickerModal();
     try {
       const res = await DocumentPicker.pickMultiple({
         type: [DocumentPicker.types.pdf],
       });
-
-      const files = res.map((doc) => ({
+  
+      const newFiles = res.map((doc) => ({
         uri: doc.uri,
         name: doc.name,
         type: doc.type || 'application/pdf',
         isPdf: true,
       }));
-
-      const updated = [...selectedFiles, ...files];
+  
+      const totalFiles = selectedFiles.length + newFiles.length;
+  
+      if (totalFiles > 6) {
+        Alert.alert('Limit Reached', 'You can select a maximum of 6 files.');
+        return;
+      }
+  
+      const updated = [...selectedFiles, ...newFiles];
       setSelectedFiles(updated);
       onFileSelected?.(updated);
     } catch (error) {
@@ -70,6 +83,7 @@ const CustomFilePicker = ({ onFileSelected }) => {
       }
     }
   };
+    
 
   const removeFile = (index) => {
     const updated = selectedFiles.filter((_, i) => i !== index);

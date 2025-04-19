@@ -1,14 +1,14 @@
-import React from 'react';
+import React ,{useState}from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity ,Alert,ActivityIndicator} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
-const ReimbursementSts = ({route}) => {
+const ReimbursementSts = ({route,navigation}) => {
   const [isCancelling, setIsCancelling] = useState(false);
 
   // Function to render the list of expenses
   const { data } = route.params || {};
-  console.log('data',data)
+  //console.log('data',data)
   let statusColor = 'black';
 
   if (data?.Status === 'Approve') {
@@ -19,40 +19,47 @@ const ReimbursementSts = ({route}) => {
     statusColor = 'red';
   }
   
-  const cancelRequest = async (id, reimbursementId, navigation) => {
+  const cancelRequest = async (id, ReimbursementId, navigation) => {
     setIsCancelling(true); // Start loading
     try {
       const token = await AsyncStorage.getItem('access_token');
-  
-      const response = await fetch('http://localhost:50144/api/Employee/CancelReimbursementRequest', {
+      console.log('Cancel Params:', { id, ReimbursementId }); // Log input values
+
+      const body = JSON.stringify({
+        Id: id,
+        ReimbursementId: ReimbursementId,
+      });
+      
+     // console.log('Request body:', body); // 👈 This logs the request body
+      
+      const response = await fetch('https://hrexim.tranzol.com/api/Employee/CancelReimbursementRequest', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          Id: id,
-          ReimbursementId: reimbursementId,
-        }),
+        body: body,
       });
-  
-      if (!response.ok) {
-        throw new Error('Failed to cancel the request');
-      }
+      
   
       const result = await response.json();
-      console.log('Cancel response:', result);
+      //console.log('Cancel response:', result);
   
-      Alert.alert('Success', 'Request cancelled successfully', [
-        { text: 'OK', onPress: () => navigation.goBack() },
-      ]);
+      if (response.ok && result.status === 'Success') {
+        Alert.alert('Success', result.message, [
+          { text: 'OK', onPress: () => navigation.goBack() },
+        ]);
+      } else {
+        throw new Error(result.message || 'Failed to cancel the request');
+      }
     } catch (error) {
       console.error('Error:', error);
-      Alert.alert('Error', 'Something went wrong while cancelling the request');
+      Alert.alert('Error', error.message || 'Something went wrong while cancelling the request');
     } finally {
       setIsCancelling(false); // Stop loading
     }
   };
+  
   
   const RenderExpenseList = () => {
     return (
@@ -155,7 +162,7 @@ const ReimbursementSts = ({route}) => {
               <Text style={{
                 fontWeight: '600',
                 color: 'gray'
-              }}>Level 1</Text>
+              }}></Text>
             </View>
             <View style={styles.statusContainer}>
               <Text style={[styles.approved,]}>{data.Status}</Text>
@@ -163,66 +170,7 @@ const ReimbursementSts = ({route}) => {
             </View>
 
           </View>
-          {/* <View style={styles.rowContainer}>
-            <Text style={{
-              color: '#e68837',
-              fontWeight: '600'
-            }}>Warning:</Text>
-            <Text style={{
-              color: 'gray',
-              fontWeight: '600',
-              marginLeft: 10
-            }}>--</Text>
-          </View>
-          <View style={styles.rowContainer}>
-            <View style={styles.circleContainer}>
-              <Image
-                source={require('../assets/mypic.jpeg')}
-                style={styles.circleImage}
-              />
-            </View>
-            <View style={styles.columnContainer}>
-              <Text style={{
-                fontSize: 16,
-                fontWeight: 'bold',
-                color: '#736f71'
-              }}>Satyaranjan Ojha</Text>
-              <Text style={{
-                fontWeight: '600',
-                color: 'gray'
-              }}>Level 2</Text>
-            </View>
-            <View style={styles.statusContainer}>
-              <Text style={styles.approved}>Approved</Text>
-              <Text style={styles.timestamp}>2 hours ago</Text>
-            </View>
-
-          </View> */}
-       
-          {/* <View style={styles.rowContainer}>
-            <View style={styles.circleContainer}>
-              <Image
-                source={require('../assets/mypic.jpeg')}
-                style={styles.circleImage}
-              />
-            </View>
-            <View style={styles.columnContainer}>
-              <Text style={{
-                fontSize: 16,
-                fontWeight: 'bold',
-                color: '#736f71'
-              }}>Satyaranjan Ojha</Text>
-              <Text style={{
-                fontWeight: '600',
-                color: 'gray'
-              }}>Level 3</Text>
-            </View>
-            <View style={styles.statusContainer}>
-              <Text style={[styles.approved, { color: 'red' }]}>Rejected</Text>
-              <Text style={styles.timestamp}>1 hours ago</Text>
-            </View>
-
-          </View> */}
+          
           <View style={[styles.rowContainer, { paddingBottom: 10, borderBottomColor: 'lightgray', borderBottomWidth: 0.8 }]}>
             <Text style={{
               color: '#e68837',
@@ -232,12 +180,12 @@ const ReimbursementSts = ({route}) => {
               color: '#736f71',
               fontWeight: '400',
               marginLeft: 10
-            }}>Attach the appointment</Text>
+            }}></Text>
           </View>
-          {(item.Status === 'Submit' || item.Status === 'Pending') && (
+          {(data.Status === 'Pending') && (
   <TouchableOpacity
     style={styles.button}
-    onPress={() => cancelRequest(item.id, item.ReimbursementId, navigation)}
+    onPress={() => cancelRequest(data.id, data.ReimbursementId, navigation)}
     disabled={isCancelling} // Disable button during loading
   >
     {isCancelling ? (
