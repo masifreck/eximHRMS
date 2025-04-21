@@ -182,7 +182,7 @@ const ReimbursementSts = ({route,navigation}) => {
               marginLeft: 10
             }}></Text>
           </View>
-          {(data.Status === 'Pending') && (
+          {(data.Status === 'Pending' || data.Status === 'Submit') && (
   <TouchableOpacity
     style={styles.button}
     onPress={() => cancelRequest(data.id, data.ReimbursementId, navigation)}

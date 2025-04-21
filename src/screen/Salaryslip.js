@@ -53,8 +53,8 @@ const Salaryslip = ({navigation}) => {
   const [showIssueBox, setShowIssueBox] = useState(false);
   const [filePath, setFilePath] = useState(null);
   const [issue, setIssue] = useState(false);
-  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1); // default current month
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState(''); // default current month
+  const [selectedYear, setSelectedYear] = useState('');
   const handleMonthYearChange = (month, year) => {
     const date = new Date(year, month - 1); // month is 0-indexed
     const monthName = date.toLocaleString('default', { month: 'long' });
@@ -64,33 +64,34 @@ const Salaryslip = ({navigation}) => {
     setSelectedMonth(monthName); // or store month number if needed for API
     setSelectedYear(year);
   };
-  const generatePDF = async () => {
-    try {
-      // Step 1: Generate the PDF
-      const result = await RNHTMLtoPDF.convert({
-        html: `${SalaryHTML(salaryDetail)}`,
-        fileName: `SalarySlip`,
-        directory: 'Documents',
-      });
+  function numberToWords(num) {
+    const a = [
+      "", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", 
+      "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen",
+    ];
+    const b = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
+  
+    const convert = (n) => {
+      if (n < 20) return a[n];
+      if (n < 100) return b[Math.floor(n / 10)] + (n % 10 !== 0 ? " " + a[n % 10] : "");
+      if (n < 1000)
+        return a[Math.floor(n / 100)] + " Hundred" + (n % 100 !== 0 ? " and " + convert(n % 100) : "");
+      return convert(Math.floor(n / 1000)) + " Thousand" + (n % 1000 !== 0 ? " " + convert(n % 1000) : "");
+    };
+  
+    if (num === 0) return "Zero";
+    const [integer, fraction] = num.toString().split(".");
+    const integerPart = convert(parseInt(integer, 10));
+    const fractionPart = fraction ? `and ${convert(parseInt(fraction, 10))} Cents` : "";
+    return `${integerPart} ${fractionPart}`.trim();
+  }
 
-      //console.log('PDF generated at:', result.filePath);
-      setFilePath(result.filePath); // Save filePath for sharing
-
-      // Step 2: Share the PDF file using react-native-share
-      //sharePDF(result.filePath);
-
-    } catch (error) {
-      console.log('Error generating PDF:', error);
-      setErrorMessage('Error generating PDF');
-      setShowAlert(true);
-    }
-  };
 
   const handlePrintButtonPress = async () => {
     try {
-     
+     const netPayinWords=numberToWords(salaryDetail.NetPayable)
       const result = await RNHTMLtoPDF.convert({
-        html: `${SalaryHTML(salaryDetail)}`,
+        html: `${SalaryHTML(salaryDetail,netPayinWords)}`,
         fileName: 'salary.pdf',
         directory: 'Documents',
       });
@@ -146,6 +147,7 @@ const [loading,setLoading]=useState(false);
     console.log('Fetching data for:', selectedMonth, selectedYear);
     
   }, [selectedMonth, selectedYear,navigation]);
+ 
   const showInput = () => {
     return (
       <View>
@@ -307,8 +309,12 @@ const [loading,setLoading]=useState(false);
         </View>
         {/* ESIC Employee */}
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 }}>
-          <Text style={styles.text}>ESIC Employee</Text>
-          <Text style={[styles.money, { color: 'orange' }]}>₹ {salaryDetail.ESIC}</Text>
+          <Text style={styles.text}>Salary Advance</Text>
+          <Text style={[styles.money, { color: 'orange' }]}>₹ {salaryDetail.SalaryAdvance}</Text>
+        </View>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 }}>
+          <Text style={styles.text}>TDS</Text>
+          <Text style={[styles.money, { color: 'orange' }]}>₹ {salaryDetail.Tds}</Text>
         </View>
         {/* Loan */}
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 }}>
@@ -316,9 +322,18 @@ const [loading,setLoading]=useState(false);
           <Text style={[styles.money, { color: 'orange' }]}>₹ {salaryDetail.Loan || 0}</Text>
         </View>
         {/* Adjustments */}
+
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 }}>
-          <Text style={styles.text}>Adjustments</Text>
-          <Text style={[styles.money, { color: 'orange' }]}>₹ {salaryDetail.Adjustments || 0}</Text>
+          <Text style={styles.text}>Penality</Text>
+          <Text style={[styles.money, { color: 'orange' }]}>₹ {salaryDetail.Penalty || 0}</Text>
+        </View>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 }}>
+          <Text style={styles.text}>Professional Tax</Text>
+          <Text style={[styles.money, { color: 'orange' }]}>₹ {salaryDetail.ProfessionalTax || 0}</Text>
+        </View>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 }}>
+          <Text style={styles.text}>Food Deduction</Text>
+          <Text style={[styles.money, { color: 'orange' }]}>₹ {salaryDetail.FoodDeduction || 0}</Text>
         </View>
         {/* Other Deduction */}
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 }}>
@@ -356,16 +371,24 @@ const [loading,setLoading]=useState(false);
           <Text style={styles.text}>ESIC Employer</Text>
           <Text style={[styles.money, { color: 'orange' }]}>₹ {salaryDetail.ESICEmployer || 0}</Text>
         </View>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 }}>
+          <Text style={styles.text}>EPF Employer</Text>
+          <Text style={[styles.money, { color: 'orange' }]}>₹ {salaryDetail.EPFEPSDifference || 0}</Text>
+        </View> 
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 }}>
+          <Text style={styles.text}>EPF Admin Charges</Text>
+          <Text style={[styles.money, { color: 'orange' }]}>₹ {salaryDetail.PFAdminCharges || 0}</Text>
+        </View> 
         {/* Provident Fund */}
         {/* <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 }}>
           <Text style={styles.text}>Provident Fund</Text>
           <Text style={[styles.money, { color: 'orange' }]}>₹ 329.00</Text>
         </View>
         {/* Pension Fund */}
-        {/* <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 }}>
-          <Text style={styles.text}>Pension Fund</Text>
-          <Text style={[styles.money, { color: 'orange' }]}>₹ 747.00</Text>
-        </View>  */}
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 }}>
+          <Text style={styles.text}>EPS Employer Share</Text>
+          <Text style={[styles.money, { color: 'orange' }]}>₹ {salaryDetail.EPSRemitted || 0}</Text>
+        </View> 
         {/* Total */}
         <View style={{
           flexDirection: 'row',
@@ -388,6 +411,31 @@ const [loading,setLoading]=useState(false);
             color: 'green'
           }}>₹ {salaryDetail.totalEmployer || 0}</Text>
         </View>
+      </View>
+      <Text style={[styles.label, { paddingVertical: 8 }]}>Net Payment</Text>
+      <View style={[styles.insideContainer, { marginBottom: 30 }]}>
+        {/* ESIC Employer */}
+       
+        {/* Provident Fund */}
+        {/* <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 }}>
+          <Text style={styles.text}>Provident Fund</Text>
+          <Text style={[styles.money, { color: 'orange' }]}>₹ 329.00</Text>
+        </View>
+        {/* Pension Fund */}
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+          <Text style={styles.text}>Net Pay</Text>
+          <Text style={[styles.money, { color: 'green' }]}>₹ {salaryDetail.NetPayable || 0}</Text>
+        </View>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 }}>
+          <Text style={styles.text}>Net Pay in Words</Text>
+          {salaryDetail.NetPayable ? (
+  <Text style={[styles.text, { marginTop: 4, fontStyle: 'italic', color: '#555',width:'60%',marginLeft:10,marginRight:10}]}>
+    (In Words: {numberToWords(salaryDetail.NetPayable)})
+  </Text>
+) : null}
+        </View> 
+        {/* Total */}
+       
       </View>
       
     </ScrollView>)}

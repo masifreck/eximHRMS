@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, ImageBackground, Image, Dimensions, ScrollView, TouchableOpacity } from 'react-native'
+import { View, Text, StyleSheet, ImageBackground, Image, Dimensions, ScrollView, TouchableOpacity ,ActivityIndicator} from 'react-native'
 import React, { useState ,useEffect} from 'react'
 import Insurance from '../component/Insurance';
 import Fontisto from 'react-native-vector-icons/Fontisto';
@@ -9,6 +9,8 @@ const deviceHeight = Dimensions.get('window').height;
 
 const EProfile = () => {
   const [employeeDetails,setEmployeeDetails]=useState([])
+  const [PhotoEmpoyee,setPhotoEployee]=useState('');
+  const [isloading,setIsLoading]=useState(false);
   useEffect(() => {
     const getEmployeeId = async () => {
       try {
@@ -24,7 +26,44 @@ const EProfile = () => {
     };
       getEmployeeId();
   }, []);
-  
+   useEffect(()=>{
+    const getPhoto = async () => {
+      try {
+        setIsLoading(true);
+        const mobileNo = await AsyncStorage.getItem("mobileNo");
+        const token = await AsyncStorage.getItem('access_token');
+    
+        const url = `https://hrexim.tranzol.com/api/Employee/GetEmployee?mobileno=${mobileNo}`;
+        console.log('url', url);
+    
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+    
+        if (!response.ok) {
+          throw new Error('Invalid response from server');
+        }
+    
+        const photoResponse = await response.json(); // ✅ await here
+        setPhotoEployee(photoResponse.Photo);
+        // console.log('photo', photoResponse.Photo);  
+        // console.log('Type of PhotoEmpoyee:', typeof   PhotoEmpoyee);
+      } catch (error) {
+        console.error('Error fetching employee data:', error.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+getPhoto();
+   },[])
+   useEffect(() => {
+    console.log('Updated PhotoEmpoyee:', PhotoEmpoyee);
+  }, [PhotoEmpoyee]);
   
   const [showBankDetails, setshowBankDetails] = useState(false);
   const [showInsuranceDetails, setshowInsuranceDetails] = useState(false);
@@ -50,6 +89,7 @@ const EProfile = () => {
 
   return (
     <ScrollView>
+      {console.log('photo in parents component',PhotoEmpoyee)}
       <View style={styles.container}>
         <View style={styles.topContainer}>
           <ImageBackground
@@ -57,7 +97,7 @@ const EProfile = () => {
             style={styles.imgBack}>
             <View style={styles.imgContainer}>
               <Image
-                source={require('../assets/mypic.jpeg')}
+                source={{ uri: PhotoEmpoyee }}
                 style={{ height: 100, width: 100, borderRadius: 50, borderWidth: 1, borderColor: 'white' }}
               />
 
@@ -65,20 +105,20 @@ const EProfile = () => {
                 <Text
                   style={{
                     color: '#fff',
-                    fontSize: 18,
+                    fontSize: 14,
                     fontFamily: 'Roboto-Medium',
                     marginBottom: 4,
                     fontWeight: '500'
                   }}>
     {employeeDetails.Salutation+''}  {employeeDetails.FirstName}
                 </Text>
-                <Text style={{ fontSize: 13, color: 'white', fontWeight: '500', marginBottom: 4, }}>
+                <Text style={{ fontSize: 12, color: 'white', fontWeight: '500', marginBottom: 4, }}>
                   BRANCH : {employeeDetails.BranchName}</Text>
                 <Text
                   style={{
                     color: '#fff',
                     fontFamily: 'Roboto-Regular',
-                    fontSize: 13,
+                    fontSize: 12,
                     marginBottom: 4,
                   }}>
               {employeeDetails.OfficalEmail}
@@ -86,7 +126,7 @@ const EProfile = () => {
                 <Text style={{
                   color: '#fff',
                   fontFamily: 'Roboto-Regular',
-                  fontSize: 13
+                  fontSize: 12
                 }}>Employee Code : {employeeDetails.EmployeeCode}</Text>
               </View>
             </View>
@@ -99,9 +139,12 @@ const EProfile = () => {
           style={{ marginTop: 20 }}>
           <PanCard 
           employeeDetails={employeeDetails}
+          PhotoEmpoyee={PhotoEmpoyee}
+          
           />
           <AdharCard
            employeeDetails={employeeDetails}
+           PhotoEmpoyee={PhotoEmpoyee}
           />
         </ScrollView>
 
@@ -497,7 +540,7 @@ const styles = StyleSheet.create({
   },
   txt4: {
     color: 'black',
-    fontSize: 12,
+    fontSize: 10,
     fontWeight: '600'
   },
   txt5: {
@@ -508,7 +551,7 @@ const styles = StyleSheet.create({
   },
   txt6: {
     color: 'black',
-    fontSize: 12,
+    fontSize: 10,
     fontWeight: '600',
   }
 })
@@ -517,23 +560,30 @@ export default EProfile
 
 
 
-const PanCard = (employeeDetails) => {
-  const Details=employeeDetails.employeeDetails
+const PanCard = ({employeeDetails ,PhotoEmpoyee}) => {
+  const [imageError, setImageError] = useState(false);
+  const Details=employeeDetails
+  // console.log('photo in component',PhotoEmpoyee)
+  //  console.log('Details',employeeDetails)
+  if (!Details) {
+    return <Text>Loading details...</Text>;
+  }
+
   return (
     <View style={styles.panView}>
       <ImageBackground
         source={require('../assets/pan-card.png')}
         style={{
-          height: '100%',
-          width: '101%',
+          height: 200,
+          width: 300,
           alignSelf: 'center'
         }}
       >
         <View style={{ marginTop: 50, marginLeft: 16 }}>
           <Text style={styles.txt3}>Permanent Account Number :</Text>
-          <Text style={[styles.txt4, { marginTop: 3, fontSize: 15, fontWeight: 'bold' }]}>{Details.PanNo}</Text>
+          <Text style={[styles.txt4, { marginTop: 2, fontSize: 14, fontWeight: 'bold' }]}>{Details.PanNo}</Text>
         </View>
-        <View style={{ marginTop: 6, marginLeft: 16 }}>
+        <View style={{ marginTop: 4, marginLeft: 16 }}>
           <Text style={styles.txt3}>Name :</Text>
           <Text style={styles.txt4}>{ Details.FirstName}</Text>
         </View>
@@ -546,24 +596,43 @@ const PanCard = (employeeDetails) => {
     <Text style={[styles.txt4, { marginLeft: 6 }]}>{Details.BirthDate?Details.BirthDate.split('T')[0]:''}</Text>
         </View>
 
+     
+   
+          {PhotoEmpoyee && typeof PhotoEmpoyee === 'string' && !imageError ? (
+            <Image
+              source={{ uri: PhotoEmpoyee }}
+              style={{ width: 55, height: 65, position:'absolute',bottom:16,right:20 }}  // Larger size to confirm image loading
+              
+             
+            />
+          ) : imageError ? (
+            <Text>Failed to load image</Text> // Fallback text if image fails
+          ) : null}
+      
+
+
+
+
 
       </ImageBackground>
     </View>
   )
 }
 
-const AdharCard = (employeeDetails) => {
-  const Details=employeeDetails.employeeDetails
+const AdharCard = ({employeeDetails,PhotoEmpoyee}) => {
+  const [imageError, setImageError] = useState(false);
+  const Details=employeeDetails
   return (
     <View style={styles.adharView}>
       <ImageBackground
         source={require('../assets/aadhaar.png')}
         style={{
-          height: '100%',
-          width: '100%',
+          height: 200,
+          width: 300,
+           
         }}
       >
-        <View style={{ marginTop: 55, marginLeft: 95, flexDirection: 'row', alignItems: 'center' }}>
+        <View style={{ marginTop: 50, marginLeft: 95, flexDirection: 'row', alignItems: 'center' }}>
           <Text style={styles.txt5}>Name :</Text>
           <Text style={styles.txt6}>{Details.FirstName}</Text>
         </View>
@@ -571,18 +640,28 @@ const AdharCard = (employeeDetails) => {
           <Text style={styles.txt5}>DOB :</Text>
           <Text style={styles.txt6}>{Details.BirthDate?Details.BirthDate.split('T')[0]:""}</Text>
         </View>
-        <View style={{ marginTop: 4, marginLeft: 95, }}>
+        <View style={{ marginTop: 4, marginLeft: 95 }}>
           <Text style={styles.txt5}>Address :</Text>
-          <Text style={[styles.txt6, { width: 160 }]}>{Details.PermanentAddress?Details.PermanentAddress.split('/')[1]:""}</Text>
+          <Text style={[styles.txt6, { width: 130 ,marginLeft:55,marginTop:-20,height:80}]}>{Details.PermanentAddress?Details.PermanentAddress:""}</Text>
         </View>
         <Text style={{
           color: 'black',
           position: 'absolute',
-          bottom: 8,
+          bottom: 13,
           left: 80,
-          fontSize: 15,
+          fontSize: 14,
           fontWeight: '700'
         }}>{Details.AadharNo}</Text>
+          {PhotoEmpoyee && typeof PhotoEmpoyee === 'string' && !imageError ? (
+            <Image
+              source={{ uri: PhotoEmpoyee }}
+              style={{ width: 75, height: 94, position:'absolute',top:58,left:12 ,}}  // Larger size to confirm image loading
+            
+             
+            />
+          ) : imageError ? (
+            <Text>Failed to load image</Text> // Fallback text if image fails
+          ) : null}
       </ImageBackground>
     </View>
   )

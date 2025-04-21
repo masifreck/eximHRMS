@@ -26,19 +26,20 @@ const NewReimbursementRequest = ({ navigation }) => {
     const [Token,setToken]=useState('');
      const [EmployeeId, setEmployeeId] = useState('');
      const [postLoading,setPostLoading]=useState(false);
-   
+   const [userId,setuserId]=useState('');
     useEffect(() => {
      const checkLoginStatus = async () => {
        try {
          const details = await AsyncStorage.getItem("employeeDetails");
          const token = await AsyncStorage.getItem('access_token');
-   
+   const user=await AsyncStorage.getItem('userId');
          if (details !== null) {
            const parsedDetails = JSON.parse(details);
            
            setEmployeeDetails(parsedDetails);
            setEmployeeId(parsedDetails.EmployeeId);
            setToken(token);
+           setuserId(user);
 
          }
         } catch (error) {
@@ -110,7 +111,7 @@ const NewReimbursementRequest = ({ navigation }) => {
     // Function to render the list of expenses
     const PostExpense = async () => {
         try {
-          console.log("Expense Data:", expenseData); // Debugging
+         // console.log("Expense Data:", expenseData); // Debugging
       
           // Validate the expenseData
           if (!expenseData || !expenseData[0]?.selectedDate) {
@@ -156,6 +157,7 @@ const NewReimbursementRequest = ({ navigation }) => {
             { name: 'Expense', data: expenseData[0]?.misc?.toString() ?? '' },
             { name: 'Remarks', data: expenseData[0]?.remark?.toString() ?? '' },
             { name: 'JourneyDescription', data: description?.toString() ?? '' },
+            {name :'ActionBy',data:userId.toString()},
           ];
       
           // Attach selected files

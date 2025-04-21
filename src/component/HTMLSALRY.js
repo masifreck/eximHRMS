@@ -1,6 +1,6 @@
 import { ElBase64 } from './EximBase64Logo';
 
-export const SalaryHTML = (salaryDetail) => {
+export const SalaryHTML = (salaryDetail,netPayinWords) => {
   console.log('data in html', salaryDetail);
   return `
     <!DOCTYPE html>
@@ -34,7 +34,7 @@ export const SalaryHTML = (salaryDetail) => {
     }
     th, td {
       border: 1px solid #aaa;
-      padding: 2px;
+      padding: 1px;
       text-align: left;
       margin-block-end: 2em;
       margin-block-start: 2em;
@@ -65,7 +65,21 @@ export const SalaryHTML = (salaryDetail) => {
     }
     .info-row span:last-child {
       text-align: left;
-      width: 70%;
+      
+    }
+       .info-bank {
+      display: flex;
+      justify-content: space-between;
+      margin: 2px 0;
+    }
+    .info-bank span:first-child {
+      text-align: left;
+    
+      font-weight: bold;
+    }
+    .info-bank span:last-child {
+      text-align: left;
+      width:'70%'
     }
   </style>
 </head>
@@ -121,26 +135,48 @@ export const SalaryHTML = (salaryDetail) => {
         <td>ESIC Employer</td><td>${salaryDetail.ESICEmployer}</td>
       </tr>
       <tr>
-        <td>Medical Allowance</td><td>${salaryDetail.FixedMedicalAllowance}</td>
         
-        <td></td><td></td>
-        <td>Loan</td><td>${salaryDetail.Loan}</td>
+        <td>Special Allowance</td><td>${salaryDetail.SpecialAllow}</td>
+        <td>Salary Advance</td><td>${salaryDetail.SalaryAdvance}</td>
+        <td>EPF Employer</td><td>${salaryDetail.EPFEPSDifference}</td>
+      </tr>
+      <tr>
+        
+      <td>Medical Allowance</td><td>${salaryDetail.FixedMedicalAllowance}</td>
+          <td>TDS</td><td>${salaryDetail.Tds}</td>
+        <td>EPF Admin Charges</td><td>${salaryDetail.PFAdminCharges}</td>
       </tr>
       <tr>
         <td>House Rent Allowance</td><td>${salaryDetail.HRA}</td>
-        <td>PF Admin</td><td>${salaryDetail.PFAdminCharges}</td>
-        <td>Pension Fund</td><td>${salaryDetail.EPSRemitted}</td>
+         <td>Loan</td><td>${salaryDetail.Loan}</td>
+          <td>EPS Employer Share</td><td>${salaryDetail.EPSRemitted}</td>
+        <td ></td>
       </tr>
       <tr>
-        <td>Conveyance</td><td>${salaryDetail.Conveyance}</td>
-        <td colspan="4"></td>
+      <td>Conveyance</td><td>${salaryDetail.Conveyance}</td>
+          <td>Penality</td><td>${salaryDetail.Penalty}</td>
+        <td colspan="3"></td>
       </tr>
       <tr>
-        <td>Uniform Allowance</td><td>${salaryDetail.Uniform}</td>
-        <td colspan="4"></td>
+       <td>Uniform Allowance</td><td>${salaryDetail.Uniform}</td>
+          <td>Other Deduction</td><td>${salaryDetail.OtherDeduction}</td>
+        <td colspan="3"></td>
       </tr>
-      <tr>
+       <tr>
+       
+
         <td>Entertainment Allowance</td><td>${salaryDetail.Entertainment}</td>
+          <td>Professional Tax</td><td>${salaryDetail.ProfessionalTax}</td>
+        <td colspan="3"></td>
+      </tr>
+       <tr>
+        <td>Allowance</td><td>${salaryDetail.Allowances}</td>
+          <td>Food Deduction</td><td>${salaryDetail.FoodDeduction}</td>
+        <td colspan="3"></td>
+      </tr>
+       <tr>
+        <td>City Allowance</td><td>${salaryDetail.CityAllow}</td>
+          
         <td colspan="4"></td>
       </tr>
       <tr>
@@ -153,25 +189,26 @@ export const SalaryHTML = (salaryDetail) => {
 
   <div class="section">
     <h3>Net Pay Details</h3>
-    <p><strong>Net Pay:</strong> ₹ ${salaryDetail.NetPayable}</p>
+    <p><strong>Net Pay:</strong> ₹ ${salaryDetail.NetPayable}/-</p>
+      <p><strong>Net Pay in Words:</strong> ₹ ${netPayinWords}/-</p>
    
   </div>
 
   <div class="section">
-    <h3 style=" text-align: left;" >Bank & Loan Details</h3>
-     <br/>
-    <p class="info-row"><span>Payment Mode:</span><span>${salaryDetail.PaymentMode}</span></p>
-    <p class="info-row"><span>Account No:</span><span>${salaryDetail.AccountNo}</span></p>
-    <p class="info-row"><span>IFSC Code:</span><span>${salaryDetail.IFSCCode}</span></p>
-    <br/>
-    <p><strong>Loan Advance Details:</strong></p>
+    <h3 style=" text-align: left; margin-bottom:10px;" >Bank & Loan Details</h3>
+    
+    <p class="info-bank"><span>Payment Mode:</span><span>${salaryDetail.PaymentMode}</span></p>
+    <p class="info-bank"><span>Account No:</span><span>${salaryDetail.AccountNo}</span></p>
+    <p class="info-bank"><span>IFSC Code:</span><span>${salaryDetail.IFSCCode}</span></p>
+   
+    <p style="margin-bottom:10px;"><strong>Loan Advance Details:</strong></p>
     <table>
       <tr><th>Total Amount</th><th>Recover</th><th>Balance</th></tr>
       <tr><td>₹${salaryDetail.LoanAmount}</td><td>₹${salaryDetail.LoanInstallment}</td><td>${salaryDetail.LoanBalance}</td></tr>
     </table>
   </div>
 
-  <p style="text-align: right; margin-top: 40px;"><em>SIGNATURE NOT REQUIRED</em></p>
+  <p style="text-align: right; margin-top: 40px;"><em>This is a system Generated Salary Sleep-Signature Not Required</em></p>
 
 </body>
 </html>

@@ -64,7 +64,8 @@ const Newlogin = ({ navigation }) => {
         await AsyncStorage.setItem('access_token', data.access_token);
         await AsyncStorage.setItem('mobileNo', username);
         await AsyncStorage.setItem('password',password);
-        navigation.replace('Home'); 
+        await AsyncStorage.setItem('userId', data.userId.toString());
+        navigation.replace('splash'); 
       } else {
         setModalMessage('Unexpected response from server.');
         setIsModalVisible(true);

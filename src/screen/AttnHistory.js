@@ -115,6 +115,13 @@ const [selectedAttendance, setSelectedAttendance] = useState(null);
     hideEndDatePicker();
   }
 
+  useEffect(()=>{
+    if (FromDate === 'Start Date' || ToDate === 'End Date') {
+      return;
+    }
+    GetSelectedAttendance();
+  },[FromDate,ToDate])
+
   const GetSelectedAttendance = async () => {
     try {
       setLoading(true);
@@ -190,7 +197,7 @@ const [selectedAttendance, setSelectedAttendance] = useState(null);
 
       <View style={styles.daillySummary}>
         <View style={{backgroundColor:darkColor,paddingHorizontal:10,paddingVertical:5,borderRadius:10}}>
-        <Text style={styles.headerText}>
+        <Text style={[styles.headerText,{textAlign:'center'}]}>
           <Icon name="clipboard-text-clock-outline" size={18} color="white" /> Latest Attendance Report
         </Text>
         </View>
@@ -207,14 +214,14 @@ const [selectedAttendance, setSelectedAttendance] = useState(null);
             <Icon name="logout" size={18} color="red" style={styles.icon} />
             <Text style={styles.timeText}>Punch Out Time: {Details.LogOutTime || '--'}</Text>
           </View>
-          <View style={styles.row}>
+          <View style={[styles.row,]}>
   <Icon name={leaveInfo.icon} size={18} color={leaveInfo.iconcolor ||"#3e0961"} style={styles.icon} />
   <Text style={styles.timeText}>Status: {leaveInfo.label}</Text>
 </View>
 
         </View>
       </View>
-      <View style={{backgroundColor:'#3e0961',padding:10,margin:10,elevation:4,borderRadius:10,flexDirection:'row',justifyContent:'space-between'}}>
+      <View style={{backgroundColor:'#3e0961',padding:10,margin:10,elevation:4,borderRadius:10,flexDirection:'row',justifyContent:'space-evenly'}}>
   <TouchableOpacity style={styles.date} onPress={showStartDatePicker}>
             <AntDesign name="calendar" size={22} color={textcolor} />
             <Text style={{color:textcolor,fontSize:11,fontWeight:'bold'}}>{FromDate}</Text>
@@ -223,14 +230,14 @@ const [selectedAttendance, setSelectedAttendance] = useState(null);
             <AntDesign name="calendar" size={22} color={textcolor} />
             <Text style={{color:textcolor,fontSize:11,fontWeight:'bold'}}>{ToDate}</Text>
           </TouchableOpacity>
-       <TouchableOpacity style={{backgroundColor:'#aa18ea',borderRadius:10,elevation:4,width:'25%',justifyContent:'center',alignItems:'center'}}
+       {/* <TouchableOpacity style={{backgroundColor:'#aa18ea',borderRadius:10,elevation:4,width:'25%',justifyContent:'center',alignItems:'center'}}
        onPress={GetSelectedAttendance}
        >
          {loading ? (
         <ActivityIndicator size="large" color="#0000ff" />
       ) : (
         <Text style={{color:'white',fontSize:11,fontWeight:'bold'}}>GET DETAILS</Text>)}
-       </TouchableOpacity>
+       </TouchableOpacity> */}
 
         <DateTimePickerModal
           isVisible={isStartDatePickerVisible}
@@ -249,7 +256,7 @@ const [selectedAttendance, setSelectedAttendance] = useState(null);
      <View style={{ flex: 1, padding: 16 }}>
       {/* Loading indicator */}
       {loading ? (
-        <ActivityIndicator size="large" color="#0000ff" />
+        <ActivityIndicator size="large" color={darkColor} />
       ) : (
         // ScrollView to display the attendance data
         <ScrollView horizontal>
@@ -267,6 +274,10 @@ const [selectedAttendance, setSelectedAttendance] = useState(null);
             <View style={styles.headerCell}>
               <Icon name="logout" size={16} color="#fff" />
               <Text style={styles.headerText}> Log Out</Text>
+            </View>
+            <View style={styles.headerCell}>
+              
+              <Text style={[styles.headerText,{marginLeft:20}]}> Details</Text>
             </View>
           </View>
   
@@ -435,7 +446,6 @@ const styles = StyleSheet.create({
   daillySummary: {
     marginTop:10,
     width: '97%',
-    height: 200,
     backgroundColor: 'white',
     borderRadius: 10,
     shadowColor: 'black',
@@ -447,7 +457,9 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
     elevation: 5,
     overflow: 'hidden',margin:10,
-    padding:16
+    padding:16,
+    paddingBottom:20,
+    
   },
   weeklySummary: {
     width: '58%',
