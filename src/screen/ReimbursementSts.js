@@ -1,6 +1,7 @@
 import React ,{useState}from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity ,Alert,ActivityIndicator} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { darkColor, textcolor } from '../constants/color';
 
 
 const ReimbursementSts = ({route,navigation}) => {
@@ -8,7 +9,7 @@ const ReimbursementSts = ({route,navigation}) => {
 
   // Function to render the list of expenses
   const { data } = route.params || {};
-  //console.log('data',data)
+ // console.log('data',data)
   let statusColor = 'black';
 
   if (data?.Status === 'Approve') {
@@ -19,18 +20,19 @@ const ReimbursementSts = ({route,navigation}) => {
     statusColor = 'red';
   }
   
-  const cancelRequest = async (id, ReimbursementId, navigation) => {
+  const cancelRequest = async (id, navigation) => {
     setIsCancelling(true); // Start loading
     try {
       const token = await AsyncStorage.getItem('access_token');
-      console.log('Cancel Params:', { id, ReimbursementId }); // Log input values
+      console.log('Cancel Params:', { id, ReimbursementId: data.ReimbursementId });
+
 
       const body = JSON.stringify({
         Id: id,
-        ReimbursementId: ReimbursementId,
+        ReimbursementId: data.ReimbursementId,
       });
       
-     // console.log('Request body:', body); // 👈 This logs the request body
+      console.log('Request body:', body); // 👈 This logs the request body
       
       const response = await fetch('https://hrexim.tranzol.com/api/Employee/CancelReimbursementRequest', {
         method: 'POST',
@@ -48,7 +50,8 @@ const ReimbursementSts = ({route,navigation}) => {
       if (response.ok && result.status === 'Success') {
         Alert.alert('Success', result.message, [
           { text: 'OK', onPress: () => navigation.goBack() },
-        ]);
+        ]); 
+    
       } else {
         throw new Error(result.message || 'Failed to cancel the request');
       }
@@ -62,72 +65,72 @@ const ReimbursementSts = ({route,navigation}) => {
   
   
   const RenderExpenseList = () => {
-    return (
-      <View>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-          <Text style={{fontSize:18, color: 'green',fontWeight:'bold'}}>₹ {data.approvedAmount}</Text>
-          <Text style={{ fontSize: 14, color: 'gray' }}>{data.createDate}</Text>
+    if (!Array.isArray(data.Details) || data.Details.length === 0) return null;
+  
+    return data.Details.map((item, index) => (
+      <View key={index} style={{ marginBottom: 15, borderBottomWidth: 0.6, borderBottomColor: '#ccc', paddingBottom: 10 }}>
+        <Text style={{ fontSize: 15, fontWeight: 'bold', marginBottom: 4 ,color:darkColor,}}>Expense #{index + 1}</Text>
+  
+        <View style={styles.row}>
+          <Text style={styles.labelSmall}>Travel Type:</Text>
+          <Text style={styles.value}>{item.TravelTypeName || '-'}</Text>
         </View>
-        <View style={{
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          marginBottom: 6,
-        }}>
-          <Text style={styles.item}>{data.fromPlace}</Text>
-          <Text style={{ fontSize: 14, color: 'gray', fontWeight: 'bold' }}>- -</Text>
-          <Text style={styles.item}>{data.toPlace}</Text>
+  
+        <View style={styles.row}>
+          <Text style={styles.labelSmall}>From:</Text>
+          <Text style={styles.value}>{item.FromPlace}</Text>
+          
         </View>
-
-        <View style={{
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          marginBottom: 4,
-          borderBottomColor: 'lightgray',
-          borderBottomWidth: 0.8,
-          paddingBottom: 6,
-          marginBottom: 6,
-          marginTop: 2
-        }}>
-          <Text style={{ fontSize: 13, color: 'gray', fontWeight: '500' }}>Travel Type : <Text style={{
-            color: 'blue',
-            fontSize: 14,
-            fontWeight: 'bold'
-          }}>{data.travelTypeName}</Text></Text>
-          <Text style={{ fontSize: 13, color: 'gray', fontWeight: '500' }}>Kilometers : <Text style={{
-            color: 'blue',
-            fontSize: 14,
-            fontWeight: 'bold'
-          }}>{data.kilometers}</Text></Text>
+        <View style={styles.row}>
+        <Text style={styles.labelSmall}>To:</Text>
+        <Text style={styles.value}>{item.ToPlace}</Text>
         </View>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
-          <Text style={{ fontSize: 12, color: 'gray', fontWeight: '500' }}>Fare : <Text style={{
-            color: 'green',
-            fontSize: 13,
-            fontWeight: '600'
-          }}> ₹ {data.Amount}</Text></Text>
-          <Text style={{ fontSize: 12, color: 'gray', fontWeight: '500' }}>Fooding : <Text style={{
-            color: 'green',
-            fontSize: 13,
-            fontWeight: '600'
-          }}> ₹ {data.fooding}</Text></Text>
+  
+        <View style={styles.row}>
+          <Text style={styles.labelSmall}>Kilometers:</Text>
+          <Text style={styles.value}>{item.Kilometers}</Text>
         </View>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-          <Text style={{ fontSize: 12, color: 'gray', fontWeight: '500' }}>Lodging : <Text style={{
-            color: 'green',
-            fontSize: 13,
-            fontWeight: '600'
-          }}> ₹ {data.lodging}</Text></Text>
-          <Text style={{ fontSize: 12, color: 'gray', fontWeight: '500' }}>Misc. Expense : <Text style={{
-            color: 'green',
-            fontSize: 13,
-            fontWeight: '600'
-          }}> ₹ 1000</Text></Text>
+  
+        <View style={styles.row}>
+          <Text style={styles.labelSmall}>Fare:</Text>
+          <Text style={styles.valueGreen}>₹ {item.Amount}</Text>
         </View>
-        <Text style={[styles.label,{marginTop:8}]}>Claim Ammount : <Text style={[styles.item
-        ,{color:'green'}]}> ₹ {data.claimAmount}</Text></Text>
+  
+        <View style={styles.row}>
+          <Text style={styles.labelSmall}>Fooding:</Text>
+          <Text style={styles.valueGreen}>₹ {item.Fooding}</Text>
+        </View>
+  
+        <View style={styles.row}>
+          <Text style={styles.labelSmall}>Lodging:</Text>
+          <Text style={styles.valueGreen}>₹ {item.Lodging}</Text>
+        </View>
+  
+        <View style={styles.row}>
+          <Text style={styles.labelSmall}>Misc. Expense:</Text>
+          <Text style={styles.valueGreen}>₹ {item.MiscExpense || 0}</Text>
+        </View>
+        <View style={styles.row}>
+        <Text style={styles.labelSmall}>Remark:</Text>
+        <Text style={styles.value}>{item.DetailsReamrk?item.DetailsReamrk :''}</Text>
+        </View>
+        {/* {(data.Status === 'Pending' || data.Status === 'Submit') && ( */}
+  <TouchableOpacity
+    style={styles.button}
+    onPress={() => cancelRequest(item.Id,  navigation)}
+    disabled={isCancelling} // Disable button during loading
+  >
+    {isCancelling ? (
+      <ActivityIndicator color="#fff" />
+    ) : (
+      <Text style={styles.buttonText}>Cancel Request</Text>
+    )}
+  </TouchableOpacity>
+{/* )} */}
       </View>
-    );
+    ));
   };
+  
 
   return (
     <ScrollView>
@@ -135,12 +138,27 @@ const ReimbursementSts = ({route,navigation}) => {
       <View style={styles.container}>
      
         <View style={styles.boxContainer}>
-        <RenderExpenseList/>
+       
           <View style={{
             borderBottomWidth: 0.8,
             borderBottomColor: 'lightgray',
             marginTop: 10
           }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+          <Text style={{fontSize:18, color: 'green',fontWeight:'bold'}}>₹ {data.ApproveAmount}</Text>
+          <Text style={{ fontSize: 14, color: 'gray' }}>{data.createDate}</Text>
+        </View>
+        {/* <View style={{
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          marginBottom: 6,
+        }}>
+          <Text style={styles.item}>{data.fromPlace}</Text>
+          <Text style={{ fontSize: 14, color: 'gray', fontWeight: 'bold' }}>- -</Text>
+          <Text style={styles.item}>{data.toPlace}</Text>
+        </View> */}
+            <Text style={[styles.label,{marginTop:8}]}>Claim Ammount : <Text style={[styles.item
+        ,{color:'green'}]}> ₹ {data.ClaimAmount}</Text></Text>
             <Text style={styles.label}>Description:</Text>
             <Text style={styles.item}>
              {data.remarks}
@@ -170,34 +188,34 @@ const ReimbursementSts = ({route,navigation}) => {
             </View>
 
           </View>
-          
+          <View style={{flexDirection:'row'}}>
+          <Text style={{
+              color: '#e68837',
+              fontWeight: '600'
+            }}>Action By          :</Text>
+            <Text style={{
+              color: textcolor,
+              fontWeight: '400',
+              marginLeft: 10
+            }}>{data.ActionBy}</Text>
+          </View>
           <View style={[styles.rowContainer, { paddingBottom: 10, borderBottomColor: 'lightgray', borderBottomWidth: 0.8 }]}>
+        
             <Text style={{
               color: '#e68837',
               fontWeight: '600'
-            }}>Warning:</Text>
+            }}>Action Remark :</Text>
             <Text style={{
-              color: '#736f71',
+              color: textcolor,
               fontWeight: '400',
               marginLeft: 10
-            }}></Text>
+            }}>{data.HoldingRemarks}</Text>
           </View>
-          {(data.Status === 'Pending' || data.Status === 'Submit') && (
-  <TouchableOpacity
-    style={styles.button}
-    onPress={() => cancelRequest(data.id, data.ReimbursementId, navigation)}
-    disabled={isCancelling} // Disable button during loading
-  >
-    {isCancelling ? (
-      <ActivityIndicator color="#fff" />
-    ) : (
-      <Text style={styles.buttonText}>Cancel Request</Text>
-    )}
-  </TouchableOpacity>
-)}
+          
 
-
+<RenderExpenseList/>
         </View>
+        
       </View>
     </ScrollView>
   );
@@ -301,6 +319,29 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: 'white',
   },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginVertical: 2,
+  },
+  labelSmall: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: textcolor,
+    width:'30%'
+  },
+  value: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: darkColor,
+    width:'70%'
+  },
+  valueGreen: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: 'green',
+  },
+  
 });
 
 export default ReimbursementSts;

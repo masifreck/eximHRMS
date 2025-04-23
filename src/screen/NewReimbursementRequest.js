@@ -54,16 +54,16 @@ const NewReimbursementRequest = ({ navigation }) => {
 
      
       const handleFileSelected = (files) => {
-        console.log('Selected files:', files);
+        // console.log('Selected files:', files);
       
         setSelectedFiles(files);
       
-        files.forEach((file, index) => {
-          console.log(`File ${index + 1}:`);
-          console.log('Name:', file.name);
-          console.log('Type:', file.type);
-          console.log('URI:', file.uri);
-        });
+        // files.forEach((file, index) => {
+        //   // console.log(`File ${index + 1}:`);
+        //   // console.log('Name:', file.name);
+        //   // console.log('Type:', file.type);
+        //   // console.log('URI:', file.uri);
+        // });
       };
       
       
@@ -110,93 +110,81 @@ const NewReimbursementRequest = ({ navigation }) => {
       
     // Function to render the list of expenses
     const PostExpense = async () => {
-        try {
-         // console.log("Expense Data:", expenseData); // Debugging
-      
-          // Validate the expenseData
-          if (!expenseData || !expenseData[0]?.selectedDate) {
-            Alert.alert('Missing Data', 'Please fill in the expense details.');
-            return;
-          }
-      
-          // Validate description
-          if (!description || description.trim() === '') {
-            Alert.alert('Missing Description', 'Please provide a journey description.');
-            return;
-          }
-      
-          // Validate attachments
-          if (!selectedFiles || selectedFiles.length === 0) {
-            Alert.alert('Missing Attachment', 'Please select at least one attachment.');
-            return;
-          }
-      
-          const token = await AsyncStorage.getItem('access_token');
-          setPostLoading(true);
-      
-          // Handle date formatting correctly
-          const formattedPickDate = formatDate(expenseData[0]?.selectedDate);
-      
-          if (!formattedPickDate) {
-            Alert.alert('Invalid Date', 'Please provide a valid date.');
-            return;
-          }
-      
-          // Prepare form data
-          const formData = [
-            { name: 'EmployeeId', data: EmployeeId?.toString() ?? '' },
-            { name: 'PickDate', data: formattedPickDate },
-            { name: 'JobNo', data: expenseData[0]?.jobNumber?.toString() ?? '' },
-            { name: 'FromPlace', data: expenseData[0]?.fromPlace?.toString() ?? '' },
-            { name: 'ToPlace', data: expenseData[0]?.toPlace?.toString() ?? '' },
-            { name: 'TravelTypeId', data: expenseData[0]?.travelType?.toString() ?? '' },
-            { name: 'Kilometers', data: expenseData[0]?.kilometers?.toString() ?? '' },
-            { name: 'Amount', data: expenseData[0]?.fare?.toString() ?? '' },
-            { name: 'Fooding', data: expenseData[0]?.fooding?.toString() ?? '' },
-            { name: 'Lodging', data: expenseData[0]?.lodging?.toString() ?? '' },
-            { name: 'Expense', data: expenseData[0]?.misc?.toString() ?? '' },
-            { name: 'Remarks', data: expenseData[0]?.remark?.toString() ?? '' },
-            { name: 'JourneyDescription', data: description?.toString() ?? '' },
-            {name :'ActionBy',data:userId.toString()},
-          ];
-      
-          // Attach selected files
-          selectedFiles.forEach((file, index) => {
-            formData.push({
-              name: `Attachment${index + 1}`,
-              filename: file.name,
-              type: file.type,
-              data: RNFetchBlob.wrap(file.uri.replace('file://', '')),
-            });
-          });
-      
-          console.log('Sending formData:', formData);
-      
-          // Send the formData to the API
-          const response = await RNFetchBlob.fetch('POST', 'https://hrexim.tranzol.com/api/Employee/AddReimbursement', {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'multipart/form-data',
-          }, formData);
-      
-          // Log the response for debugging
-          const result = await response.text();  // Use .text() instead of .json() since it's a plain string
-          console.log('Server response:', result);
-      
-          // Check the response type
-          if (typeof result === 'string' && result.includes('Added Successfully')) {
-            Alert.alert('Success', 'Reimbursement added successfully.');
-            navigation.goBack();
-          } else {
-            Alert.alert('Failed', 'Submission failed. Please try again.');
-          }
-      
-        } catch (err) {
-          console.error('Error in PostExpense:', err);
-          Alert.alert('Error', 'Something went wrong while submitting the expense.');
-        } finally {
-          setPostLoading(false);
+      try {
+        if (!expenseData || expenseData.length === 0 || !expenseData[0]?.selectedDate) {
+          Alert.alert('Missing Data', 'Please fill in the expense details.');
+          return;
         }
-      };
+    
+        if (!description || description.trim() === '') {
+          Alert.alert('Missing Description', 'Please provide a journey description.');
+          return;
+        }
+    
+        if (!selectedFiles || selectedFiles.length === 0) {
+          Alert.alert('Missing Attachment', 'Please select at least one attachment.');
+          return;
+        }
+    
+        const token = await AsyncStorage.getItem('access_token');
+        setPostLoading(true);
+    
+        // Convert all entries in expenseData to the required structure
+        const reimbursementDetails = expenseData.map(item => ({
+          PickDate: formatDate(item.selectedDate),
+          JobNo :item.jobNumber?.toString()?? '',
+          FromPlace: item.fromPlace?.toString() ?? '',
+          ToPlace: item.toPlace?.toString() ?? '',
+          TravelTypeId: item.travelType ?? 0,
+          Kilometers: item.kilometers ?? 0,
+          Amount: item.fare ?? 0,
+          Fooding: item.fooding ?? 0,
+          Lodging: item.lodging ?? 0,
+          Expense: item.misc ?? 0,
+          Remarks: item.remark?.toString() ?? ''
+        }));
+    
+        const formData = [
+          { name: 'EmployeeId', data: EmployeeId?.toString() ?? '' },
+          { name: 'JourneyDescription', data: description?.toString() ?? '' },
+          { name: 'ActionBy', data: userId?.toString() ?? '' },
+          { name: 'ReimbursementDetails', data: JSON.stringify(reimbursementDetails) }
+        ];
+    
+        selectedFiles.forEach((file, index) => {
+          formData.push({
+            name: `Attachment${index + 1}`,
+            filename: file.name,
+            type: file.type,
+            data: RNFetchBlob.wrap(file.uri.replace('file://', '')),
+          });
+        });
+    
+        console.log('Sending formData:', formData);
+    
+        const response = await RNFetchBlob.fetch('POST', 'https://hrexim.tranzol.com/api/Employee/AddReimbursement', {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data',
+        }, formData);
+    
+        const result = await response.text();
+        console.log('Server response:', result);
+    
+        if (typeof result === 'string' && result.includes('Added Successfully')) {
+          Alert.alert('Success', 'Reimbursement added successfully.');
+          navigation.goBack();
+        } else {
+          Alert.alert('Failed', 'Submission failed. Please try again.');
+        }
+    
+      } catch (err) {
+        console.error('Error in PostExpense:', err);
+        Alert.alert('Error', 'Something went wrong while submitting the expense.');
+      } finally {
+        setPostLoading(false);
+      }
+    };
+    
       
     
       
@@ -367,12 +355,12 @@ const NewReimbursementRequest = ({ navigation }) => {
                 />
             </View>
             <CustomFilePicker onFileSelected={handleFileSelected} />
-            {isVisible && expenseData.length > 0 ?(null): ( <TouchableOpacity style={[styles.button, { marginTop: 20 }]}
+             <TouchableOpacity style={[styles.button, { marginTop: 20 }]}
                 onPress={handleAddExpense} >
                 <Text style={styles.buttonText}>
                     Add New Expense
                 </Text>
-            </TouchableOpacity>)}
+            </TouchableOpacity>
             <View style={styles.expenseList}>{renderExpenseList()}</View>
             {isVisible && expenseData.length > 0 ? (
                 <TouchableOpacity style={[styles.button, { marginBottom: 20 }]} onPress={PostExpense} disabled={postLoading}>
