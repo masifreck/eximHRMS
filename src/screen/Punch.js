@@ -319,39 +319,7 @@ const capturePhoto = async () => {
       }
     });
   }
-  const postPunchData1 = async () => {
-    const currentDateTime = new Date().toLocaleString();
-    const punchData = {
-      Latitude: latitude.toString(),
-      Longitude: longitude.toString(),
-      EmployeeId: EmployeeId,
-      CurrentDate: currentDateTime,
-    };
-    setPuchLoading(true);
-
-    try {
-      const response = await fetch('https://hrexim.tranzol.com/api/Attendance/Punch', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(punchData),
-      });
-
-      const result = await response.json();
-      console.log(result)
-      if (response.ok) {
-        Alert.alert(`${result}`, 'Your punch was successful.');
-        playSuccessSound(); 
-      } else {
-        Alert.alert(`${result}`, 'Failed to post punch data.');
-      }
-    } catch (error) {
-      Alert.alert('Error', 'An error occurred while posting punch data.');
-    } finally {
-      setPuchLoading(false);
-    }
-  };
+ 
   const postPunchData = async (EmployeeId, latitude, longitude, imageSource, setPuchLoading) => {
     if (!latitude || !longitude || !imageSource || !EmployeeId) {
       Alert.alert('Missing Information', 'Please ensure all fields are filled.');
