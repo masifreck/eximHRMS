@@ -1,7 +1,7 @@
 import { ElBase64 } from './EximBase64Logo';
 
 export const SalaryHTML = (salaryDetail,netPayinWords) => {
-  console.log('data in html', salaryDetail);
+  // console.log('data in html', salaryDetail);
   return `
     <!DOCTYPE html>
 <html lang="en">
@@ -21,7 +21,7 @@ export const SalaryHTML = (salaryDetail,netPayinWords) => {
       margin-block-start: 0em;
     }
     .section {
-      margin-top: 30px;
+      margin-top: 0px;
     }
     table {
       width: 100%;
@@ -40,7 +40,7 @@ export const SalaryHTML = (salaryDetail,netPayinWords) => {
       margin-block-start: 2em;
     }
     th {
-      background-color: #efefef;
+      background-color: #ffe9ec;
     }
     .two-column {
       display: flex;
@@ -85,7 +85,7 @@ export const SalaryHTML = (salaryDetail,netPayinWords) => {
 </head>
 <body>
 <div style="display:flex; justify-content: space-between; align-items: center;">
- <img src="${ElBase64}" alt="Company Logo" width="80" height="80">
+ <img src="${ElBase64}" alt="Company Logo" width="90" height="90">
   <h2>PAYSLIP MONTH : ${salaryDetail.MonthName} - ${salaryDetail.P_Year}</h2>
  
 </div>
@@ -109,7 +109,7 @@ export const SalaryHTML = (salaryDetail,netPayinWords) => {
     </div>
   </div>
 
-  <div class="section">
+  <div style="margin-top:10px;" class="section">
     <h3>Attendance / Leave - ${salaryDetail.MonthName} - ${salaryDetail.P_Year}</h3>
     <table>
       <tr>
@@ -121,7 +121,7 @@ export const SalaryHTML = (salaryDetail,netPayinWords) => {
     </table>
   </div>
 
-  <div class="section">
+  <div style="margin-top:10px;" class="section">
     <h3>Earnings & Deductions</h3>
     <table>
       <tr>
@@ -176,7 +176,10 @@ export const SalaryHTML = (salaryDetail,netPayinWords) => {
       </tr>
        <tr>
         <td>City Allowance</td><td>${salaryDetail.CityAllow}</td>
-          
+        <td colspan="4"></td>
+      </tr>
+         <tr>
+        <td>Others</td><td>${salaryDetail.OtherPayment}</td>
         <td colspan="4"></td>
       </tr>
       <tr>
@@ -187,14 +190,14 @@ export const SalaryHTML = (salaryDetail,netPayinWords) => {
     </table>
   </div>
 
-  <div class="section">
+  <div style="margin-top:10px;" class="section">
     <h3>Net Pay Details</h3>
     <p><strong>Net Pay:</strong> ₹ ${salaryDetail.NetPayable}/-</p>
       <p><strong>Net Pay in Words:</strong> ₹ ${netPayinWords}/-</p>
    
   </div>
 
-  <div class="section">
+  <div style="margin-top:10px;" class="section">
     <h3 style=" text-align: left; margin-bottom:10px;" >Bank & Loan Details</h3>
     
     <p class="info-bank"><span>Payment Mode:</span><span>${salaryDetail.PaymentMode}</span></p>

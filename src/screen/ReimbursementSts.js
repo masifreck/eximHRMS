@@ -114,7 +114,7 @@ const ReimbursementSts = ({route,navigation}) => {
         <Text style={styles.labelSmall}>Remark:</Text>
         <Text style={styles.value}>{item.DetailsReamrk?item.DetailsReamrk :''}</Text>
         </View>
-        {/* {(data.Status === 'Pending' || data.Status === 'Submit') && ( */}
+        {(data.Status === 'Pending' || data.Status === 'Submit') && (
   <TouchableOpacity
     style={styles.button}
     onPress={() => cancelRequest(item.Id,  navigation)}
@@ -126,7 +126,7 @@ const ReimbursementSts = ({route,navigation}) => {
       <Text style={styles.buttonText}>Cancel Request</Text>
     )}
   </TouchableOpacity>
-{/* )} */}
+ )} 
       </View>
     ));
   };

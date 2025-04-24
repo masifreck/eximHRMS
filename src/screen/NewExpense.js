@@ -18,9 +18,7 @@ const NewExpense = ({ navigation, route }) => {
         Alert.alert("Validation Error", "Please select a date.");
         return;
       }
-      if(!jobNumber){
-        Alert.alert("Validation Error","Please Enter Job No")
-      }
+    
       if (!travelType) {
         Alert.alert("Validation Error", "Please select a travel type.");
         return;
@@ -131,7 +129,7 @@ const NewExpense = ({ navigation, route }) => {
                     </View>
                     <View style={{ flex: 1, marginLeft: 10 }}>
                         <Text style={styles.label}>Job Number
-                        <Text style={styles.required}>*</Text>
+                       
                         </Text>
                         <TextInput
                             style={styles.input}
@@ -139,7 +137,7 @@ const NewExpense = ({ navigation, route }) => {
                             onChangeText={setJobNumber}
                             placeholder="Enter Job Number"
                             placeholderTextColor="gray"
-                            keyboardType="numeric"
+                        
                         />
                     </View>
                 </View>

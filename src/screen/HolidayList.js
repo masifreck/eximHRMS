@@ -38,10 +38,10 @@ import {
           }
   
           const AttendanceLatest = await response.json(); // returns a string
-          console.log('Raw AttendanceLatest:', AttendanceLatest);
+          //console.log('Raw AttendanceLatest:', AttendanceLatest);
           
           const dat = JSON.parse(AttendanceLatest); // parse string into array
-          console.log('Parsed Holidays:', dat);
+          //console.log('Parsed Holidays:', dat);
           
           setData(dat);
           

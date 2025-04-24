@@ -188,7 +188,7 @@ const [selectedAttendance, setSelectedAttendance] = useState(null);
   
   const testCode = Details?.Test;
   
-  const leaveInfo = leaveTypeMap[testCode] || { label: testCode || '--', icon: 'help-outline' };
+  const leaveInfo = leaveTypeMap[testCode] || { label: testCode || '--', icon: 'information-outline' };
     
   return (
     <ScrollView >

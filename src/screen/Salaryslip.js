@@ -131,7 +131,7 @@ const [loading,setLoading]=useState(false);
       throw new Error('Invalid response from server');
     }
     const salaryDetails=await response.json();
-    console.log('salary details',salaryDetails);
+    // console.log('salary details',salaryDetails);
     setSlaryDetails(salaryDetails);
       } catch (error) {
         console.error('Error fetching employee data:', error.message);
@@ -275,6 +275,10 @@ const [loading,setLoading]=useState(false);
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 }}>
           <Text style={styles.text}>Arrears</Text>
           <Text style={[styles.money, { color: 'green' }]}>₹ {salaryDetail.Arrear || 0}</Text>
+        </View>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 }}>
+          <Text style={styles.text}>Other</Text>
+          <Text style={[styles.money, { color: 'green' }]}>₹ {salaryDetail.OtherPayment || 0}</Text>
         </View>
         {/* Total */}
         <View style={{

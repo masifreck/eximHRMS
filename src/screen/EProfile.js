@@ -61,9 +61,7 @@ const EProfile = () => {
     
 getPhoto();
    },[])
-   useEffect(() => {
-    console.log('Updated PhotoEmpoyee:', PhotoEmpoyee);
-  }, [PhotoEmpoyee]);
+
   
   const [showBankDetails, setshowBankDetails] = useState(false);
   const [showInsuranceDetails, setshowInsuranceDetails] = useState(false);
@@ -89,7 +87,6 @@ getPhoto();
 
   return (
     <ScrollView>
-      {console.log('photo in parents component',PhotoEmpoyee)}
       <View style={styles.container}>
         <View style={styles.topContainer}>
           <ImageBackground
