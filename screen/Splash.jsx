@@ -2,7 +2,8 @@ import {View, Text, StyleSheet, Image, StatusBar} from 'react-native';
 import React, {useEffect} from 'react';
 import {useNavigation} from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import LottieView from 'lottie-react-native';
+import splash_Animation from '../src/assets/loading.json';
 const Splash = () => {
   const navigation = useNavigation();
 
@@ -60,13 +61,21 @@ const Splash = () => {
       <StatusBar translucent backgroundColor="transparent" />
       <View style={styles.upper}>
         <Image
-          style={{width: 100, height: 100}}
           source={require('../src/assets/mypic.jpeg')}
+          style={{width: '50%', height: '50%'}}
+          resizeMode="contain"
         />
-        <View>
           <Text style={styles.company_name}>HR MS</Text>
-        </View>
       </View>
+   <LottieView
+   source={splash_Animation}
+    autoPlay
+    loop
+    style={{width: '20%', height: '20%'}}
+   />
+
+    
+      
       <View style={styles.lower}>
         <Text style={styles.tranzol}>Powered By Tranzol</Text>
       </View>

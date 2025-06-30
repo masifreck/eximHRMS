@@ -106,5 +106,38 @@ export const styles = StyleSheet.create({
     text: {
       color: 'black',
       fontSize: 15
-    }
+    },
+  blockerContainer: {
+    flex: 1,
+    backgroundColor: '#fff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  image: {
+    width: 200,
+    height: 200,
+    marginBottom: 30,
+  },
+  emoji: {
+    fontSize: 48,
+    marginBottom: 10,
+  },
+  warningText: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    color: '#d00',
+    marginBottom: 20,
+  },
+  instructions: {
+    fontSize: 16,
+    textAlign: 'center',
+    color: '#333',
+    paddingHorizontal: 10,
+  },
+  bold: {
+    fontWeight: 'bold',
+    color: '#000',
+  }
   });

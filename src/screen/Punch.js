@@ -20,6 +20,7 @@ import successsound from '../assets/mixkit.wav'
 import RNFetchBlob from 'rn-fetch-blob';
 import RNFS from 'react-native-fs';
 import ImageResizer from 'react-native-image-resizer';
+import { checkDeveloperOptions } from '../utiils/checkDeveloperOptions'; // Import the utility function
 const Punch = ({ navigation }) => {
   const device = useCameraDevice('front');
   const camera = useRef(null);
@@ -36,10 +37,46 @@ const Punch = ({ navigation }) => {
     const compressedPath = `${RNFS.CachesDirectoryPath}/compressed.jpg`;
   
     await RNFS.copyFile(imagePath, compressedPath); // Convert to JPEG
-    console.log('Compressed Image Path:', compressedPath);
+   // console.log('Compressed Image Path:', compressedPath);
   
     return compressedPath;
   };
+    const [isDevModeEnabled, setIsDevModeEnabled] = useState(null);
+
+  useEffect(() => {
+    const checkMode = async () => {
+      const enabled = await checkDeveloperOptions();
+      setIsDevModeEnabled(enabled);
+    };
+    checkMode();
+  }, []);
+
+  if (isDevModeEnabled === null) {
+    return null; // or a loader
+  }
+
+  if (isDevModeEnabled) {
+    return (
+      <View style={styles.blockerContainer}>
+        <Image
+          source={require('../assets/warning-sign.png')} // Replace with your image
+          style={styles.image}
+          resizeMode="contain"
+        />
+
+        <Text style={styles.warningText}>
+          Please turn off your developer option to continue punching
+        </Text>
+
+        <Text style={styles.instructions}>
+          🛠️ Go to <Text style={styles.bold}>Settings {'>'} Developer options</Text> and disable it.
+        </Text>
+
+        {/* OR use vector icon (optional) */}
+        {/* <Icon name="tools" size={28} color="#d00" style={{ marginTop: 10 }} /> */}
+      </View>
+    );
+  }
   const mapViewRef = React.useRef(null);
   const { hasPermission } = useCameraPermission();
   const getLocation = async () => {

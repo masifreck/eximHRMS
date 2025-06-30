@@ -1,4 +1,4 @@
-package com.tscan
+package com.eximhrms
 
 import android.app.Application
 import com.facebook.react.PackageList
@@ -18,8 +18,8 @@ class MainApplication : Application(), ReactApplication {
       object : DefaultReactNativeHost(this) {
         override fun getPackages(): List<ReactPackage> =
             PackageList(this).packages.apply {
-              // Packages that cannot be autolinked yet can be added manually here, for example:
-              // add(MyReactNativePackage())
+              // 👇 Manually add DeveloperOptionsPackage here
+              add(DeveloperOptionsPackage())
             }
 
         override fun getJSMainModuleName(): String = "index"

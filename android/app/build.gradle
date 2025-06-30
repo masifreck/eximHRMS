@@ -74,9 +74,9 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace "com.tscan"
+    namespace "com.eximhrms" 
     defaultConfig {
-        applicationId "com.tscan"
+        applicationId "com.eximhrms"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

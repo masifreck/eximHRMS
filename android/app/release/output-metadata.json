@@ -4,7 +4,7 @@
     "type": "APK",
     "kind": "Directory"
   },
-  "applicationId": "com.tscan",
+  "applicationId": "com.eximhrms",
   "variantName": "release",
   "elements": [
     {
