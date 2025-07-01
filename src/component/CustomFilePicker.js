@@ -73,7 +73,7 @@ const CustomFilePicker = ({ onFileSelected }) => {
         Alert.alert('Limit Reached', 'You can select a maximum of 6 files.');
         return;
       }
-  
+  //a
       const updated = [...selectedFiles, ...newFiles];
       setSelectedFiles(updated);
       onFileSelected?.(updated);
