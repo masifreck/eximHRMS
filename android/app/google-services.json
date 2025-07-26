@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "856626687174",
+    "project_id": "eximhrms",
+    "storage_bucket": "eximhrms.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:856626687174:android:35cb1ac993afee9cd87bc7",
+        "android_client_info": {
+          "package_name": "com.eximhrms"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDjEjEBEhhyLP9deUFJTylWRhj7JY-VFI8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

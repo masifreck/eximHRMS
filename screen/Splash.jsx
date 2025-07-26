@@ -67,13 +67,14 @@ const Splash = () => {
         />
           <Text style={styles.company_name}>HR MS</Text>
       </View>
+      <View style={{ justifyContent: 'center', alignItems: 'center',width:'100%'}}  >
    <LottieView
    source={splash_Animation}
     autoPlay
     loop
-    style={{width: '20%', height: '20%'}}
+    style={{width: 300, height: 200}}
    />
-
+</View>
     
       
       <View style={styles.lower}>

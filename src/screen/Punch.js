@@ -20,7 +20,7 @@ import successsound from '../assets/mixkit.wav'
 import RNFetchBlob from 'rn-fetch-blob';
 import RNFS from 'react-native-fs';
 import ImageResizer from 'react-native-image-resizer';
-import { checkDeveloperOptions } from '../utiils/checkDeveloperOptions'; // Import the utility function
+//import { checkDeveloperOptions } from '../utiils/checkDeveloperOptions'; // Import the utility function
 const Punch = ({ navigation }) => {
   const device = useCameraDevice('front');
   const camera = useRef(null);
@@ -43,40 +43,17 @@ const Punch = ({ navigation }) => {
   };
     const [isDevModeEnabled, setIsDevModeEnabled] = useState(null);
 
-  useEffect(() => {
-    const checkMode = async () => {
-      const enabled = await checkDeveloperOptions();
-      setIsDevModeEnabled(enabled);
-    };
-    checkMode();
-  }, []);
 
-  if (isDevModeEnabled === null) {
-    return null; // or a loader
-  }
 
-  if (isDevModeEnabled) {
-    return (
-      <View style={styles.blockerContainer}>
-        <Image
-          source={require('../assets/warning-sign.png')} // Replace with your image
-          style={styles.image}
-          resizeMode="contain"
-        />
+  // if (isDevModeEnabled === null) {
+  //   return null; // or a loader
+  // }
 
-        <Text style={styles.warningText}>
-          Please turn off your developer option to continue punching
-        </Text>
-
-        <Text style={styles.instructions}>
-          🛠️ Go to <Text style={styles.bold}>Settings {'>'} Developer options</Text> and disable it.
-        </Text>
-
-        {/* OR use vector icon (optional) */}
-        {/* <Icon name="tools" size={28} color="#d00" style={{ marginTop: 10 }} /> */}
-      </View>
-    );
-  }
+  // if (isDevModeEnabled) {
+  //   return (
+    
+  //   );
+  // }
   const mapViewRef = React.useRef(null);
   const { hasPermission } = useCameraPermission();
   const getLocation = async () => {
@@ -134,14 +111,12 @@ const Punch = ({ navigation }) => {
     }
   };
   useEffect(() => {
-    // Check if developer mode is enabled
-    
-
     const getEmployeeId = async () => {
       try {
         const details = await AsyncStorage.getItem("employeeDetails");
         if (details !== null) {
           const parsedDetails = JSON.parse(details);
+          console.log('Parsed Employee Details:', parsedDetails);
           setEmployeeId(parsedDetails.EmployeeId); // Access the EmployeeId from the parsed object
                 const mobileNo = await AsyncStorage.getItem('mobileNo');
                 const token = await AsyncStorage.getItem('access_token');
@@ -252,11 +227,11 @@ const Punch = ({ navigation }) => {
     return <NoCameraErrorView />;
   }
 
-  if (device === null) {
-    // Handle no camera device found case
-    console.log('No camera device found');
-    return <NoCameraErrorView />;
-  }
+  // if (device === null) {
+  //   // Handle no camera device found case
+  //   console.log('No camera device found');
+  //   return <NoCameraErrorView />;
+  // }
  
   const resizeImage = async (imagePath) => {
     try {
@@ -401,12 +376,12 @@ const capturePhoto = async () => {
       );
   
       const status = response.info().status;
-      const rawResponse = response.data;
+      const rawResponse = response.json();
   
       console.log('Status:', status);
-      console.log('Raw Response:', rawResponse);
+      console.log('Raw Response:', rawResponse.result);
   
-      if (status === 200 && rawResponse === '"Ok"') {
+      if (status === 200 && rawResponse.result === 'Attendance Uploaded Successfully') {
         await AsyncStorage.setItem('punchIn', JSON.stringify(true));
         await AsyncStorage.setItem('lastPunchIn', `Punch : ${new Date().toISOString()}`);
         playSuccessSound();
@@ -428,6 +403,27 @@ const capturePhoto = async () => {
   
   ;
   return (
+    <>
+    {isDevModeEnabled  ? (
+        <View style={styles.blockerContainer}>
+        <Image
+          source={require('../assets/warning-sign.png')} // Replace with your image
+          style={styles.image}
+          resizeMode="contain"
+        />
+
+        <Text style={styles.warningText}>
+          Please turn off your developer option to continue punching
+        </Text>
+
+        <Text style={styles.instructions}>
+          🛠️ Go to <Text style={styles.bold}>Settings {'>'} Developer options</Text> and disable it.
+        </Text>
+      </View>
+    )
+  :
+  (
+
     <View style={styles.container}>
       <View style={styles.mapcontainer}>
         <MapView
@@ -495,6 +491,9 @@ const capturePhoto = async () => {
       )}
     
     </View>
+      )
+  }
+    </>
   );
 
 };

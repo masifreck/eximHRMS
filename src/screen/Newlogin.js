@@ -9,13 +9,13 @@ import {
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import { primaryColor, textcolor } from '../constants/color';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Loading from '../component/Loading';
 import ResponseModal from '../component/Model';
 import { useCustomBackHandler } from '../component/BackHandler';
-
+import { getFCMToken } from '../utiils/notifications';
 const Newlogin = ({ navigation }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -24,7 +24,20 @@ const Newlogin = ({ navigation }) => {
   const [modalMessage, setModalMessage] = useState('');
   const { ExitModal } = useCustomBackHandler();
   const [showPassword, setShowPassword] = useState(false);
+  const [fcmToken, setFcmToken] = useState(null);
 
+  useEffect(() => {
+    const fetchToken = async () => {
+      const token = await getFCMToken();
+      if (token) {
+        setFcmToken(token);
+        console.log('FCM Token:', token);
+        // You can now send token to your server or store it
+      }
+    };
+
+    fetchToken();
+  }, []);
   // Validation function for username and password
   const handleModalClose = () => {
     setIsModalVisible(false);
@@ -36,6 +49,13 @@ const Newlogin = ({ navigation }) => {
       setIsModalVisible(true);
       return false;
     }
+    if(!fcmToken){
+        setModalMessage('FCM Token is not available. Please check your internet connection or app permissions.');
+      setIsModalVisible(true);
+      return false;
+    }
+     const token = getFCMToken();
+ console.log('FCM Token:', token);
     return true;
   };
 
@@ -43,8 +63,8 @@ const Newlogin = ({ navigation }) => {
     if (!validateInputs()) return;
 
     setLoading(true);
-    const url = `https://hrexim.tranzol.com/api/ApiLogin/Login?username=${username}&password=${password}`;
-//console.log('url',url)
+    const url = `https://hrexim.tranzol.com/api/ApiLogin/Login?username=${username}&password=${password}&deviceId=${fcmToken}`;
+console.log('url',url)
     try {
       const response = await fetch(url, {
         method: 'POST',
@@ -52,7 +72,7 @@ const Newlogin = ({ navigation }) => {
           'Content-Type': 'application/json',
         },
       });
-
+console.log('response',response)
       if (!response.ok) {
         throw new Error('Invalid credentials. Please try again.');
       }

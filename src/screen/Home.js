@@ -24,16 +24,16 @@ const RefreshLastAction = async () => {
       if (actionType && dateTime) {
         const formattedDateTime = new Date(dateTime).toLocaleString(); // Format date-time to local
         setLastActionData(`${actionType}: ${formattedDateTime}`);
-        console.log('data',lastActionData) // Combine action type and formatted date
+       // console.log('data',lastActionData) // Combine action type and formatted date
       } else {
         setLastActionData('Invalid data format'); // Fallback for unexpected formats
       }
     } else {
-      console.log('No punch-in details found'); // Log if no data
+     // console.log('No punch-in details found'); // Log if no data
       setLastActionData('No data available'); // Set state to indicate no data
     }
   } catch (error) {
-    console.error('Error fetching last punch data:', error);
+   // console.error('Error fetching last punch data:', error);
   } finally {
     setIsLoading(false); // Stop loading
   }
@@ -56,9 +56,9 @@ const RefreshLastAction = async () => {
         );
         console.log('granted', granted);
         if (granted === 'granted') {
-          console.log('You can use Geolocation');
+        //  console.log('You can use Geolocation');
         } else {
-          console.log('You cannot use Geolocation');
+         // console.log('You cannot use Geolocation');
           Alert.alert('Geolocation Permission', 'Please allow to access location for Punch , Otherwise you can not Punch.', [
             { text: 'OK', onPress: async () => console.log("ok") },
           ]);
@@ -73,7 +73,7 @@ const RefreshLastAction = async () => {
   useEffect(() => {
     if (route.params?.lastPunchIn) {
       setLastActionData(route.params.lastPunchIn);
-      console.log('route',lastActionData)
+    //  console.log('route',lastActionData)
     }
   }, [route.params?.lastPunchIn]);
 

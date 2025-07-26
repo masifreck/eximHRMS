@@ -18,6 +18,8 @@ import Leave from './screen/Leave';
 import Reimbursement from './screen/Reimbursement';
 import HolidayList from './screen/HolidayList';
 import Salaryslip from './screen/Salaryslip';
+import NotificationScreen from './screen/NotificationScreen';
+import NotificationDetailScreen from './screen/NotificationDetailScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -25,7 +27,7 @@ const AppNavigator = () => {
 
     return (
 
-        <NavigationContainer>
+     
             <Stack.Navigator screenOptions={{ headerShown: false }}>
                 {/* <Stack.Screen
                     name="Onboarding"
@@ -213,8 +215,46 @@ options={{headerShown:false}}/>
           title: 'My Salary Slip',
         }}
       />
+       <Stack.Screen
+        name="notifiction"
+        component={NotificationScreen}
+        options={{
+          headerShown: true,
+          drawerIcon: ({color}) => (
+            <MaterialCommunityIcons
+              name="bell-outline"
+              size={22}
+              color={color}
+            />
+          ),
+          headerStyle: {
+            backgroundColor: '#aa18ea',
+          },
+          headerTintColor: 'white',
+          title: 'Notifications',
+        }}
+      />
+       <Stack.Screen
+        name="NotificationDetail"
+        component={NotificationDetailScreen}
+        options={{
+          headerShown: true,
+          drawerIcon: ({color}) => (
+            <MaterialCommunityIcons
+              name="bell-outline"
+              size={22}
+              color={color}
+            />
+          ),
+          headerStyle: {
+            backgroundColor: '#aa18ea',
+          },
+          headerTintColor: 'white',
+          title: 'Notification Detail',
+        }}
+      />
             </Stack.Navigator>
-        </NavigationContainer>
+
     )
 
 }

@@ -87,7 +87,7 @@ const CustomDrawer = (props) => {
                     fontSize: 12,
                     color: 'black',
                     textAlign: 'center'
-                }}>Version: 0.1.2</Text>
+                }}>Version: 0.1.5</Text>
             </View>
         </View>
     );
