@@ -55,7 +55,7 @@ const Newlogin = ({ navigation }) => {
       return false;
     }
      const token = getFCMToken();
- console.log('FCM Token:', token);
+ //console.log('FCM Token:', token);
     return true;
   };
 

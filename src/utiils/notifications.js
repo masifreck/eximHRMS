@@ -8,7 +8,7 @@ export const getFCMToken = async () => {
 
   if (enabled) {
     const fcmToken = await messaging().getToken();
-    console.log('🔥 Device FCM Token:', fcmToken);
+   // console.log('🔥 Device FCM Token:', fcmToken);
     return fcmToken;
   } else {
     console.log('❌ Notification permission not granted');

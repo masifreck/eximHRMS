@@ -36,7 +36,7 @@ const App = () => {
         }
       } else {
         // Android 12 or below — permission not needed
-        console.log('Notification permission not required on this Android version.');
+       // console.log('Notification permission not required on this Android version.');
       }
     }
   };
@@ -60,7 +60,7 @@ const App = () => {
   // }, []);
 
   // 🔥 Get FCM Token Function
-  console.log('Firebase apps initialized:', firebase.apps);
+ // console.log('Firebase apps initialized:', firebase.apps);
 
   const getFCMToken = async () => {
     try {
@@ -71,10 +71,10 @@ const App = () => {
 
       if (enabled) {
         const fcmToken = await messaging().getToken();
-        console.log('🔥 Device FCM Token:', fcmToken);
+      //  console.log('🔥 Device FCM Token:', fcmToken);
         // You can optionally store or send this token to your backend
       } else {
-        console.log('❌ Notification permission not granted');
+       // console.log('❌ Notification permission not granted');
         Alert.alert(
           '❌ Notification Permission',
           'Please enable notifications in your device settings to receive updates.'
@@ -132,7 +132,7 @@ const App = () => {
 
     // Foreground notifications
     const unsubscribeOnMessage = messaging().onMessage(async remoteMessage => {
-      console.log('📩 Foreground notification:', remoteMessage);
+   //   console.log('📩 Foreground notification:', remoteMessage);
       playNotificationSound(); // ✅ Play sound
 
       PushNotification.localNotification({
@@ -149,7 +149,7 @@ const App = () => {
 
     // When app is in background and user taps notification
     const unsubscribeOnOpenedApp = messaging().onNotificationOpenedApp(remoteMessage => {
-      console.log('🔄 Opened from background:', remoteMessage);
+     // console.log('🔄 Opened from background:', remoteMessage);
       if (navigationRef.isReady()) {
         navigationRef.navigate('notifiction');
       }
