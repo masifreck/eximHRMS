@@ -14,7 +14,7 @@ import com.facebook.react.flipper.ReactNativeFlipper
 import com.facebook.soloader.SoLoader
 import com.google.firebase.FirebaseApp  // ✅ Import Firebase
 
-// SSL bypass imports
+
 import com.facebook.react.modules.network.OkHttpClientProvider
 import com.facebook.react.modules.network.ReactCookieJarContainer
 import okhttp3.OkHttpClient
@@ -24,8 +24,6 @@ import java.util.concurrent.TimeUnit
 import javax.net.ssl.*
 
 class MainApplication : Application(), ReactApplication {
-
-    // 🔥 SSL Bypass Implementation
     private fun enableSSLBYPASS() {
         try {
             val trustAllCerts = arrayOf<TrustManager>(
