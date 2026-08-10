@@ -18,6 +18,7 @@ const EProfile = () => {
         if (details !== null) {
           const parsedDetails = JSON.parse(details);
           setEmployeeDetails(parsedDetails); 
+          console.log('employee details in profile',parsedDetails)
         }
         console.log('employee id in profile',employeeDetails.EmployeeId)
       } catch (error) {
@@ -34,7 +35,6 @@ const EProfile = () => {
         const token = await AsyncStorage.getItem('access_token');
     
         const url = `https://hrexim.tranzol.com/api/Employee/GetEmployee?mobileno=${mobileNo}`;
-        console.log('url', url);
     
         const response = await fetch(url, {
           method: 'GET',

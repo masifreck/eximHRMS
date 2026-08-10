@@ -227,11 +227,7 @@ const Punch = ({ navigation }) => {
     return <NoCameraErrorView />;
   }
 
-  // if (device === null) {
-  //   // Handle no camera device found case
-  //   console.log('No camera device found');
-  //   return <NoCameraErrorView />;
-  // }
+
  
   const resizeImage = async (imagePath) => {
     try {
@@ -332,72 +328,169 @@ const capturePhoto = async () => {
     });
   }
  
-  const postPunchData = async (EmployeeId, latitude, longitude, imageSource, setPuchLoading) => {
-    if (!latitude || !longitude || !imageSource || !EmployeeId) {
-      Alert.alert('Missing Information', 'Please ensure all fields are filled.');
+  const postPunchData = async (
+  EmployeeId,
+  latitude,
+  longitude,
+  imageSource,
+  setPuchLoading,
+) => {
+  try {
+    // ==========================
+    // CHECK MOCK LOCATION FIRST
+    // ==========================
+    const isMockLocation = await new Promise(resolve => {
+      Geolocation.getCurrentPosition(
+        position => {
+          console.log('📍 Location:', position);
+
+          if (position?.mocked === true) {
+            Alert.alert(
+              '🚫 Security Alert',
+              'Mock location detected.\n\nPlease disable Fake GPS / Mock Location and try again.',
+            );
+            resolve(true);
+          } else {
+            resolve(false);
+          }
+        },
+        error => {
+          console.log('Location Error:', error);
+
+          Alert.alert(
+            'Location Error',
+            'Unable to verify your location. Please enable GPS and try again.',
+          );
+
+          resolve(true); // block attendance if location check fails
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 15000,
+          maximumAge: 10000,
+          forceRequestLocation: true,
+        },
+      );
+    });
+
+    if (isMockLocation) {
       return;
     }
-  
+
+    // ==========================
+    // VALIDATIONS
+    // ==========================
+    if (!latitude || !longitude || !imageSource || !EmployeeId) {
+      Alert.alert(
+        'Missing Information',
+        'Please ensure all fields are filled.',
+      );
+      return;
+    }
+
     const token = await AsyncStorage.getItem('access_token');
+
     if (!token) {
       Alert.alert('Token Missing', 'Please log in again.');
       return;
     }
-  
-    // Clean image path (make sure only 1 "file://" prefix)
-    const cleanImagePath = imageSource.startsWith('file://') ? imageSource : `file://${imageSource}`;
-  
+
+    // ==========================
+    // IMAGE PATH
+    // ==========================
+    const cleanImagePath = imageSource.startsWith('file://')
+      ? imageSource
+      : `file://${imageSource}`;
+
+    // ==========================
+    // FORM DATA
+    // ==========================
     const formData = [
-      { name: 'EmployeeId', data: EmployeeId.toString() }, // ✅ text field
-      { name: 'Latitude', data: latitude.toString() },     // ✅ text field
-      { name: 'Longitude', data: longitude.toString() }, 
-      {name:'MapUrl',data:`https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`} , // ✅ text field
+      {
+        name: 'EmployeeId',
+        data: EmployeeId.toString(),
+      },
+      {
+        name: 'Latitude',
+        data: latitude.toString(),
+      },
+      {
+        name: 'Longitude',
+        data: longitude.toString(),
+      },
+      {
+        name: 'MapUrl',
+        data: `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`,
+      },
       {
         name: 'image',
-        filename: 'selfie.jpg',          // Can be any filename
-        type: 'image/jpeg',              // Or 'image/png' depending on the source
-        data: RNFetchBlob.wrap(cleanImagePath), // ✅ proper file upload
+        filename: 'selfie.jpg',
+        type: 'image/jpeg',
+        data: RNFetchBlob.wrap(cleanImagePath),
       },
     ];
-  
+
     setPuchLoading(true);
-  
-    try {
-      console.log('Sending FormData:', formData);
-  
-      const response = await RNFetchBlob.fetch(
-        'POST',
-        'https://hrexim.tranzol.com/api/Attendance/EmployeeAttendance',
-        {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data',
-        },
-        formData
+
+    console.log('Sending FormData:', formData);
+
+    const response = await RNFetchBlob.fetch(
+      'POST',
+      'https://hrexim.tranzol.com/api/Attendance/EmployeeAttendance',
+      {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'multipart/form-data',
+      },
+      formData,
+    );
+
+    const status = response.info().status;
+    const rawResponse = response.json();
+
+    console.log('Status:', status);
+    console.log('Raw Response:', rawResponse);
+
+    if (
+      status === 200 &&
+      rawResponse.result ===
+        'Attendance Uploaded Successfully'
+    ) {
+      await AsyncStorage.setItem(
+        'punchIn',
+        JSON.stringify(true),
       );
-  
-      const status = response.info().status;
-      const rawResponse = response.json();
-  
-      console.log('Status:', status);
-      console.log('Raw Response:', rawResponse.result);
-  
-      if (status === 200 && rawResponse.result === 'Attendance Uploaded Successfully') {
-        await AsyncStorage.setItem('punchIn', JSON.stringify(true));
-        await AsyncStorage.setItem('lastPunchIn', `Punch : ${new Date().toISOString()}`);
-        playSuccessSound();
-        Alert.alert('Punch Success', 'Your punch is successful.');
-        navigation.replace('DrawerNavigation');
-      } else {
-        Alert.alert('Unexpected Response', `Server said: ${rawResponse}`);
-      }
-  
-    } catch (error) {
-      console.error('❌ Error during punch:', error);
-      Alert.alert('Error', 'Something went wrong while posting your punch.');
-    } finally {
-      setPuchLoading(false);
+
+      await AsyncStorage.setItem(
+        'lastPunchIn',
+        `Punch : ${new Date().toISOString()}`,
+      );
+
+      playSuccessSound();
+
+      Alert.alert(
+        '✅ Punch Success',
+        'Your punch is successful.',
+      );
+
+      navigation.replace('DrawerNavigation');
+    } else {
+      Alert.alert(
+        'Unexpected Response',
+        rawResponse?.result ||
+          'Attendance upload failed.',
+      );
     }
-  };
+  } catch (error) {
+    console.error('❌ Error during punch:', error);
+
+    Alert.alert(
+      'Error',
+      'Something went wrong while posting your punch.',
+    );
+  } finally {
+    setPuchLoading(false);
+  }
+};
   
   
   

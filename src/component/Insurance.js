@@ -7,14 +7,14 @@ const Insurance = (employeeDetails) => {
     const Details=employeeDetails.employeeDetails
     const insurances = [
         {
-            amount: '10,000',
+            amount: '',
             active: true,
-            policyNumber: 'AG00061851234567',
-            issueDate: '2023-01-01',
-            expiryDate: '2024-01-01',
-            companyName: 'Royal Sundaram Feneral Insurance co. Ltd(GPA)',
-            insuranceType: 'Group Personal Accident(GPA)',
-            nomineeName: 'John Doe',
+            policyNumber: '',
+            issueDate: '',
+            expiryDate: '',
+            companyName: '',
+            insuranceType: '',
+            nomineeName: '',
         },
 
     ];
