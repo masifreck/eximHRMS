@@ -18,7 +18,7 @@ const EProfile = () => {
         if (details !== null) {
           const parsedDetails = JSON.parse(details);
           setEmployeeDetails(parsedDetails); 
-          console.log('employee details in profile',parsedDetails)
+          
         }
         console.log('employee id in profile',employeeDetails.EmployeeId)
       } catch (error) {
@@ -493,8 +493,9 @@ const styles = StyleSheet.create({
   },
   txt2: {
     color: 'black',
-    fontSize: 15,
+    fontSize: 13,
     fontWeight: '700'
+    , width: deviceWidth / 2.5
   },
   panView: {
     height: 190,

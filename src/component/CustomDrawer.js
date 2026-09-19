@@ -16,7 +16,6 @@ import { useNavigation } from '@react-navigation/native';
 
 const CustomDrawer = (props) => {
     const navigation = useNavigation();  
-
     const HandleSignOut = async () => {
         try {
             await AsyncStorage.removeItem('access_token');
@@ -87,7 +86,7 @@ const CustomDrawer = (props) => {
                     fontSize: 12,
                     color: 'black',
                     textAlign: 'center'
-                }}>Version: 1.1.7</Text>
+                }}>Version: 1.1.9</Text>
             </View>
         </View>
     );

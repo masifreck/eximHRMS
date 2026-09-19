@@ -16,7 +16,7 @@ import ReimbursementApprove from './screen/ReimbursementApprove';
 import EProfile from './screen/EProfile';
 import Salaryslip from './screen/Salaryslip';
 import HolidayList from './screen/HolidayList';
-
+import LoanScreen from './screen/LoanScreen';
 const Drawer = createDrawerNavigator();
 
 const DrawerNavigation = () => {
@@ -90,25 +90,25 @@ const DrawerNavigation = () => {
           title: 'My Leaves',
         }}
       />
-      {/* <Drawer.Screen
-        name="LeaveApproval"
-        component={LeaveApproval}
-        options={{
-          headerShown: true,
-          drawerIcon: ({color}) => (
-            <MaterialCommunityIcons
-              name="calendar-clock-outline"
-              size={22}
-              color={color}
-            />
-          ),
-          headerStyle: {
-            backgroundColor: '#aa18ea',
-          },
-          headerTintColor: 'white',
-          title: 'Leave Requests',
-        }}
-      />  */}
+  <Drawer.Screen
+  name="LoanScreen"
+  component={LoanScreen}
+  options={{
+    headerShown: true,
+    drawerIcon: ({color}) => (
+      <MaterialCommunityIcons
+        name="hand-coin-outline"
+        size={22}
+        color={color}
+      />
+    ),
+    headerStyle: {
+      backgroundColor: '#aa18ea',
+    },
+    headerTintColor: '#fff',
+    title: 'My Loans',
+  }}
+/>
       <Drawer.Screen
         name="Reimbursement"
         component={Reimbursement}

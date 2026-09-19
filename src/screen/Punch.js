@@ -436,7 +436,7 @@ const capturePhoto = async () => {
 
     const response = await RNFetchBlob.fetch(
       'POST',
-      'https://hrexim.tranzol.com/api/Attendance/EmployeeAttendance',
+      'https://hrexim.tranzol.com/api/Attendance/',
       {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'multipart/form-data',

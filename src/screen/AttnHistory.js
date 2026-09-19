@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   View,ActivityIndicator,
   Alert,Dimensions,Modal} from 'react-native';
-
+import MonthYearPicker from '../component/MonthYearPicker';
 import AttendancePieChart from '../component/AttendancePieChart';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import AntDesign from 'react-native-vector-icons/AntDesign';
@@ -56,7 +56,6 @@ const [currentMonth, setCurrentMonth] = useState(new Date());
         const AttendanceLatest = await response.json();
         
          setData(AttendanceLatest);
-         //console.log('latest attn', AttendanceLatest)
       } catch (error) {
         console.error('Error fetching employee data:', error.message);
         // Navigate to login on error
@@ -73,6 +72,18 @@ const [currentMonth, setCurrentMonth] = useState(new Date());
     const [isEndDatePickerVisible, setEndDatePickerVisible] = useState(false);
     const [loading, setLoading] = useState(false); // state to track loading
     const [attendanceData, setAttendanceData] = useState([]);
+      const [selectedMonth, setSelectedMonth] = useState(''); // default current month
+      const [selectedYear, setSelectedYear] = useState('');
+      const handleMonthYearChange = (month, year) => {
+  const date = new Date(year, month - 1);
+
+  const monthName = date.toLocaleString('default', {
+    month: 'long',
+  });
+
+  setSelectedMonth(month); // numeric month: 1-12
+  setSelectedYear(year);
+};
   const handleDayPress = (day) => {
     setSelectedDate(day.dateString);
   };
@@ -116,11 +127,9 @@ const [currentMonth, setCurrentMonth] = useState(new Date());
   }
 
   useEffect(()=>{
-    if (FromDate === 'Start Date' || ToDate === 'End Date') {
-      return;
-    }
+  
     GetSelectedAttendance();
-  },[FromDate,ToDate])
+  },[selectedMonth, selectedYear])
 
   const GetSelectedAttendance = async () => {
     try {
@@ -128,10 +137,8 @@ const [currentMonth, setCurrentMonth] = useState(new Date());
       // Retrieve mobile number and token from AsyncStorage
       const mobileNo = await AsyncStorage.getItem('mobileNo');
       const token = await AsyncStorage.getItem('access_token');
-      if (FromDate === 'Start Date' || ToDate === 'End Date') {
-        Alert.alert('Invalid Input', 'Please choose a valid date range.');
-        return;
-      }
+  
+   
       const details = await AsyncStorage.getItem("employeeDetails");
       const parsedDetails = JSON.parse(details);
       
@@ -142,7 +149,8 @@ const [currentMonth, setCurrentMonth] = useState(new Date());
       }
 
       // Call the API with the mobile number and bearer token
-      const url = `https://hrexim.tranzol.com/api/Employee/GetAttendanceAnalysis?employeeId=${parsedDetails.EmployeeId}&startDate=${FromDate}&endDate=${ToDate}`;
+      console.log('Fetching attendance for EmployeeId:', parsedDetails.EmployeeId, 'Month:', selectedMonth, 'Year:', selectedYear);
+      const url = `https://hrexim.tranzol.com/api/Employee/GetAttendanceAnalysis?employeeId=${parsedDetails.EmployeeId}&PMonth=${selectedMonth}&PYear=${selectedYear}`;
       const response = await fetch(url, {
         method: 'GET',
         headers: {
@@ -158,7 +166,6 @@ const [currentMonth, setCurrentMonth] = useState(new Date());
 
       const AttendanceLatest = await response.json();
       setAttendanceData(AttendanceLatest); // Store fetched data
-   //   console.log('month wise attendance',AttendanceLatest)
       setLoading(false); // Set loading to false when data is fetched
     } catch (error) {
       console.error('Error fetching employee data:', error.message);
@@ -298,12 +305,12 @@ const getAttendanceType = attendance => {
   return 'EMPTY';
 };
 const createCalendar = () => {
-  const startDate = parseDate(FromDate);
-  const endDate = parseDate(ToDate);
-
-  if (!startDate || !endDate) {
+  if (!selectedMonth || !selectedYear) {
     return [];
   }
+
+  const year = Number(selectedYear);
+  const month = Number(selectedMonth) - 1; // JS month is 0-11
 
   const attendanceMap = {};
 
@@ -315,83 +322,50 @@ const createCalendar = () => {
     }
   });
 
-  const calendar = [];
-
-  const current = new Date(
-    startDate.getFullYear(),
-    startDate.getMonth(),
+  const firstDay = new Date(
+    year,
+    month,
     1
-  );
+  ).getDay();
 
-  const lastMonth = new Date(
-    endDate.getFullYear(),
-    endDate.getMonth(),
-    1
-  );
+  const daysInMonth = new Date(
+    year,
+    month + 1,
+    0
+  ).getDate();
 
-  while (current <= lastMonth) {
+  const days = [];
 
-    const year = current.getFullYear();
-    const month = current.getMonth();
+  // Empty cells before first day
+  for (let i = 0; i < firstDay; i++) {
+    days.push(null);
+  }
 
-    const firstDay = new Date(
+  // Actual days
+  for (let day = 1; day <= daysInMonth; day++) {
+
+    const date = new Date(
       year,
       month,
-      1
-    ).getDay();
+      day
+    );
 
-    const daysInMonth = new Date(
-      year,
-      month + 1,
-      0
-    ).getDate();
+    const dateKey = getDateKey(date);
 
-    const days = [];
+    days.push({
+      day,
+      dateKey,
+      attendance: attendanceMap[dateKey] || null,
+    });
+  }
 
-    // Empty cells before first day
-    for (let i = 0; i < firstDay; i++) {
-      days.push(null);
-    }
-
-    // Actual days
-    for (let day = 1; day <= daysInMonth; day++) {
-
-      const date = new Date(
-        year,
-        month,
-        day
-      );
-
-      // Don't show dates outside selected range
-      if (
-        date < startDate ||
-        date > endDate
-      ) {
-        days.push(null);
-        continue;
-      }
-
-      const dateKey = getDateKey(date);
-
-      days.push({
-        day,
-        dateKey,
-        attendance: attendanceMap[dateKey] || null,
-      });
-    }
-
-    calendar.push({
+  return [
+    {
       year,
       month,
       days,
-    });
-
-    current.setMonth(
-      current.getMonth() + 1
-    );
-  }
-
-  return calendar;
+    },
+  ];
 };
 
 const calendarMonths = createCalendar();
@@ -427,86 +401,8 @@ const calendarMonths = createCalendar();
 
         </View>
       </View>
-   <View style={styles.dateSelectionCard}>
 
-  {/* FROM DATE */}
-  <TouchableOpacity
-    style={styles.dateBox}
-    onPress={showStartDatePicker}
-    activeOpacity={0.8}
-  >
-    <View style={styles.dateIconContainer}>
-      <Icon
-        name="calendar-start"
-        size={22}
-        color="#3e0961"
-      />
-    </View>
-
-    <View style={styles.dateTextContainer}>
-      <Text style={styles.dateLabel}>
-        FROM DATE
-      </Text>
-
-      <Text style={styles.dateValue}>
-        {FromDate}
-      </Text>
-    </View>
-  </TouchableOpacity>
-
-
-  {/* ARROW */}
-  <View style={styles.dateArrowContainer}>
-    <Icon
-      name="arrow-right"
-      size={20}
-      color="#3e0961"
-    />
-  </View>
-
-
-  {/* TO DATE */}
-  <TouchableOpacity
-    style={styles.dateBox}
-    onPress={showEndDatePicker}
-    activeOpacity={0.8}
-  >
-    <View style={styles.dateIconContainer}>
-      <Icon
-        name="calendar-end"
-        size={22}
-        color="#3e0961"
-      />
-    </View>
-
-    <View style={styles.dateTextContainer}>
-      <Text style={styles.dateLabel}>
-        TO DATE
-      </Text>
-
-      <Text style={styles.dateValue}>
-        {ToDate}
-      </Text>
-    </View>
-  </TouchableOpacity>
-
-
-  {/* DATE PICKERS */}
-  <DateTimePickerModal
-    isVisible={isStartDatePickerVisible}
-    mode="date"
-    onConfirm={handleStartDateConfirm}
-    onCancel={hideStartDatePicker}
-  />
-
-  <DateTimePickerModal
-    isVisible={isEndDatePickerVisible}
-    mode="date"
-    onConfirm={handleEndDateConfirm}
-    onCancel={hideEndDatePicker}
-  />
-
-</View>
+  <MonthYearPicker onMonthYearChange={handleMonthYearChange} />
 <AttendancePieChart attendanceData={attendanceData} />
      <View style={{ flex: 1, padding: 16 }}>
       {/* Loading indicator */}

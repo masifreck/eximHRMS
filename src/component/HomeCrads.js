@@ -46,9 +46,9 @@ const HomeCrads = ({navigation}) => {
       </View>
       <View style={styles.row}>
         <Card
-          image={require('../assets/holidayhome2.png')}
-          label="My Holidays"
-           NavigationValue='holidays'
+          image={require('../assets/loan.png')}
+          label="My Loans"
+           NavigationValue='loan'
         />
          <Card
           image={require('../assets/salaryhome.png')}
@@ -56,6 +56,14 @@ const HomeCrads = ({navigation}) => {
  NavigationValue='Salaryslip'
         />
         
+        
+      </View>
+         <View style={styles.row}>
+        <Card
+          image={require('../assets/holidayhome2.png')}
+          label="My Holidays"
+           NavigationValue='holidays'
+        />
       </View>
     </View>
   )

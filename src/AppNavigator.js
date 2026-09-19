@@ -20,6 +20,7 @@ import HolidayList from './screen/HolidayList';
 import Salaryslip from './screen/Salaryslip';
 import NotificationScreen from './screen/NotificationScreen';
 import NotificationDetailScreen from './screen/NotificationDetailScreen';
+import LoanScreen from './screen/LoanScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -213,6 +214,25 @@ options={{headerShown:false}}/>
           },
           headerTintColor: 'white',
           title: 'My Salary Slip',
+        }}
+      />
+       <Stack.Screen
+        name="loan"
+        component={LoanScreen}
+        options={{
+          headerShown: true,
+          drawerIcon: ({color}) => (
+            <MaterialCommunityIcons
+              name="bell-outline"
+              size={22}
+              color={color}
+            />
+          ),
+          headerStyle: {
+            backgroundColor: '#aa18ea',
+          },
+          headerTintColor: 'white',
+          title: 'My Loan',
         }}
       />
        <Stack.Screen
