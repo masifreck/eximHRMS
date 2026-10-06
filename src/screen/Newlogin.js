@@ -64,7 +64,6 @@ const Newlogin = ({ navigation }) => {
 
     setLoading(true);
     const url = `https://hrexim.tranzol.com/api/ApiLogin/Login?username=${username}&password=${password}&deviceId=${fcmToken}`;
-console.log('url',url)
     try {
       const response = await fetch(url, {
         method: 'POST',

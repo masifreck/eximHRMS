@@ -37,7 +37,6 @@ const Punch = ({ navigation }) => {
     const compressedPath = `${RNFS.CachesDirectoryPath}/compressed.jpg`;
   
     await RNFS.copyFile(imagePath, compressedPath); // Convert to JPEG
-   // console.log('Compressed Image Path:', compressedPath);
   
     return compressedPath;
   };
@@ -116,7 +115,6 @@ const Punch = ({ navigation }) => {
         const details = await AsyncStorage.getItem("employeeDetails");
         if (details !== null) {
           const parsedDetails = JSON.parse(details);
-          console.log('Parsed Employee Details:', parsedDetails);
           setEmployeeId(parsedDetails.EmployeeId); // Access the EmployeeId from the parsed object
                 const mobileNo = await AsyncStorage.getItem('mobileNo');
                 const token = await AsyncStorage.getItem('access_token');
@@ -144,11 +142,6 @@ const Punch = ({ navigation }) => {
     );
   };
   async function checkAndRequestCameraPermission() {
-    console.log('restart kindly===========================================');
-    console.log(
-      PermissionsAndroid.RESULTS.GRANTED,
-      PermissionsAndroid.PERMISSIONS.CAMERA,
-    );
 
     try {
       // Check if the permission is already granted
@@ -174,14 +167,6 @@ const Punch = ({ navigation }) => {
 
         if (requestResult === PermissionsAndroid.RESULTS.GRANTED) {
           RNRestart.restart();
-          console.log('Camera permission granted');
-          console.log(
-            'restart kindly===========================================',
-          );
-          console.log(
-            PermissionsAndroid.RESULTS.GRANTED,
-            PermissionsAndroid.PERMISSIONS.CAMERA,
-          );
         } else {
           console.log('Camera permission denied');
           // Optionally, you can show an alert to inform the user
@@ -314,8 +299,6 @@ const capturePhoto = async () => {
       console.log('Failed to load the sound', error);
       return;
     }
-    console.log('Sound loaded successfully');
-    console.log('Sound duration: ', successSound.getDuration());
   });
   const playSuccessSound = () => {
     successSound.play((success) => {
@@ -342,12 +325,11 @@ const capturePhoto = async () => {
     const isMockLocation = await new Promise(resolve => {
       Geolocation.getCurrentPosition(
         position => {
-          console.log('📍 Location:', position);
 
           if (position?.mocked === true) {
             Alert.alert(
               '🚫 Security Alert',
-              'Mock location detected.\n\nPlease disable Fake GPS / Mock Location and try again.',
+              'Please Contact Administrator. Punching is blocked.',
             );
             resolve(true);
           } else {
@@ -434,52 +416,71 @@ const capturePhoto = async () => {
 
     console.log('Sending FormData:', formData);
 
-    const response = await RNFetchBlob.fetch(
-      'POST',
-      'https://hrexim.tranzol.com/api/Attendance/',
-      {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'multipart/form-data',
-      },
-      formData,
-    );
+  const response = await RNFetchBlob.fetch(
+  'POST',
+  'https://hrexim.tranzol.com/api/Attendance/JwtAttendance',
+  {
+    Authorization: `Bearer ${token}`,
+    'Content-Type': 'multipart/form-data',
+    Accept: 'application/json',
+  },
+  formData,
+);
 
-    const status = response.info().status;
-    const rawResponse = response.json();
+const status = response.info().status;
 
-    console.log('Status:', status);
-    console.log('Raw Response:', rawResponse);
+// IMPORTANT: Read raw response as text first
+const responseText = response.text();
 
-    if (
-      status === 200 &&
-      rawResponse.result ===
-        'Attendance Uploaded Successfully'
-    ) {
-      await AsyncStorage.setItem(
-        'punchIn',
-        JSON.stringify(true),
-      );
 
-      await AsyncStorage.setItem(
-        'lastPunchIn',
-        `Punch : ${new Date().toISOString()}`,
-      );
+let rawResponse;
 
-      playSuccessSound();
+try {
+  rawResponse = JSON.parse(responseText);
+} catch (parseError) {
+  console.error('❌ Response is NOT valid JSON');
+  console.error('Status:', status);
+  console.error('Server response:', responseText);
 
-      Alert.alert(
-        '✅ Punch Success',
-        'Your punch is successful.',
-      );
+  Alert.alert(
+    'Server Error',
+    `Server returned an invalid response.\n\nStatus: ${status}`,
+  );
 
-      navigation.replace('DrawerNavigation');
-    } else {
-      Alert.alert(
-        'Unexpected Response',
-        rawResponse?.result ||
-          'Attendance upload failed.',
-      );
-    }
+  return;
+}
+
+if (
+  status === 200 &&
+  rawResponse?.result === 'Attendance Uploaded Successfully'
+) {
+  await AsyncStorage.setItem(
+    'punchIn',
+    JSON.stringify(true),
+  );
+
+  await AsyncStorage.setItem(
+    'lastPunchIn',
+    `Punch : ${new Date().toISOString()}`,
+  );
+
+  playSuccessSound();
+
+  Alert.alert(
+    '✅ Punch Success',
+    'Your punch is successful.',
+  );
+
+  navigation.replace('DrawerNavigation');
+} else {
+  Alert.alert(
+    'Attendance Failed',
+    rawResponse?.result ||
+      rawResponse?.message ||
+      rawResponse?.ErrorMsg ||
+      `Request failed with status ${status}`,
+  );
+}
   } catch (error) {
     console.error('❌ Error during punch:', error);
 
@@ -551,7 +552,7 @@ const capturePhoto = async () => {
         📍 Longitude    : {loadingLocation ? <ActivityIndicator size="small" color="#0000ff" />    :    longitude}
         </Text>
         <Text style={styles.text}>
-        📍 Latitude        : {loadingLocation ? <ActivityIndicator size="small" color="#0000ff" /> : latitude}
+        📍 Latitude        : {loadingLocation ? <ActivityIndicator size="small" color="#0000ff"/>: latitude}
         </Text>
         <Text style={styles.text}>🆔 EmployeeId : {EmployeeId}</Text>
       </View>

@@ -10,13 +10,13 @@ import Home from './screen/Home';
 import CustomDrawer from './component/CustomDrawer';
 import AttnHistory from './screen/AttnHistory';
 import Leave from './screen/Leave';
-import LeaveApproval from './screen/LeaveApproval';
 import Reimbursement from './screen/Reimbursement';
-import ReimbursementApprove from './screen/ReimbursementApprove';
 import EProfile from './screen/EProfile';
 import Salaryslip from './screen/Salaryslip';
 import HolidayList from './screen/HolidayList';
 import LoanScreen from './screen/LoanScreen';
+import AddIssue from './screen/HelpDesk';
+import HelpDeskList from './screen/HelpDeskList';
 const Drawer = createDrawerNavigator();
 
 const DrawerNavigation = () => {
@@ -177,6 +177,29 @@ const DrawerNavigation = () => {
           title: 'My Salary Slip',
         }}
       />
+      <Drawer.Screen
+  name="HelpDeskList"
+  component={HelpDeskList}
+  options={{
+    headerShown: true,
+
+    drawerIcon: ({ color }) => (
+      <MaterialCommunityIcons
+        name="headset"
+        size={22}
+        color={color}
+      />
+    ),
+
+    headerStyle: {
+      backgroundColor: '#aa18ea',
+    },
+
+    title: 'Help Desk',
+
+    headerTintColor: 'white',
+  }}
+/>
     </Drawer.Navigator>
   );
 };

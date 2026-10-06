@@ -21,7 +21,7 @@ import Salaryslip from './screen/Salaryslip';
 import NotificationScreen from './screen/NotificationScreen';
 import NotificationDetailScreen from './screen/NotificationDetailScreen';
 import LoanScreen from './screen/LoanScreen';
-
+import AddIssue from './screen/HelpDesk';
 const Stack = createNativeStackNavigator();
 
 const AppNavigator = () => {
@@ -54,7 +54,10 @@ options={{headerShown:false}}/>
                     name='Home'
                     component={Home}
                     options={{ headerShown: false }} />
-                   
+                   <Stack.Screen 
+                   name='HelpDesk'
+                   component={AddIssue}
+                   options={{headerShown : false}} />
                  <Stack.Screen
                  name='EProfile'
                  component={EProfile}

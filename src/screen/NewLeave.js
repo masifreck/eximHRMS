@@ -123,6 +123,8 @@ const [balanceLoading, setBalanceLoading] = useState(true);
 useEffect(() => {
   getLeaveBalance();
 }, []);
+
+
   useEffect(() => {
     const DropDown = async () => {
       try {
@@ -155,7 +157,7 @@ useEffect(() => {
         }
 
         const LeaveType = await response.json();
-//console.log('dropdowndata',LeaveType)
+console.log('leave type dropdown data',LeaveType)
 setData(
   LeaveType.data.map(item => ({
     id: item.Id,
@@ -203,27 +205,7 @@ setData(
   const hideEndDatePicker = () => {
     setEndDatePickerVisible(false);
   };
-const calculateLeaveDays = () => {
-  if (!FromDate || !ToDate) {
-    return 0;
-  }
 
-  const from = new Date(FromDate);
-  const to = new Date(ToDate);
-
-  if (isNaN(from.getTime()) || isNaN(to.getTime())) {
-    return 0;
-  }
-
-  const difference =
-    Math.floor(
-      (to.setHours(0, 0, 0, 0) -
-        from.setHours(0, 0, 0, 0)) /
-        (1000 * 60 * 60 * 24)
-    );
-
-  return difference + 1;
-};
   const handleEndDateConfirm = date => {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0'); // Ensure 2-digit month
@@ -233,6 +215,73 @@ const calculateLeaveDays = () => {
     setToDate(formattedDate);
     hideEndDatePicker();
   };
+  const getLeaveBalancee = leaveType => {
+  if (!leaveBalance || !leaveType) {
+    return null;
+  }
+
+  const normalizedType = leaveType.trim().toUpperCase();
+
+  switch (normalizedType) {
+    case 'CASUAL LEAVE':
+      return Number(leaveBalance.CasualLeave);
+
+    case 'SICK LEAVE':
+      return Number(leaveBalance.SickLeave);
+
+    case 'EARNED LEAVE':
+      return Number(leaveBalance.EarnedLeave);
+
+    case 'MATERNITY LEAVE':
+      return Number(leaveBalance.MaternityLeave);
+
+    case 'PATERNITY LEAVE':
+      return Number(leaveBalance.PaternityLeave);
+
+    case 'MARRIAGE LEAVE':
+      return Number(leaveBalance.MarriageLeave);
+
+    case 'COMPENSATORY LEAVE':
+      return Number(leaveBalance.CompensatoryLeave);
+
+    case 'LOSS OF PAY':
+      return Number(leaveBalance.LossofPay);
+
+    case 'COMPANY BUSINESS ( CB )':
+      return Number(leaveBalance.OnDuty);
+
+    case 'WEEKLY OFF LEAVE ADJUSTMENT':
+      return Number(leaveBalance.WeeklyOff);
+
+    default:
+      return null;
+  }
+};
+
+const calculateLeaveDays = (fromDate, toDate) => {
+  if (!fromDate || !toDate) {
+    return 0;
+  }
+
+  const start = new Date(fromDate);
+  const end = new Date(toDate);
+
+  if (
+    Number.isNaN(start.getTime()) ||
+    Number.isNaN(end.getTime())
+  ) {
+    return 0;
+  }
+
+  const difference =
+    end.getTime() - start.getTime();
+
+  return (
+    Math.floor(
+      difference / (1000 * 60 * 60 * 24)
+    ) + 1
+  );
+};
   const validateInputs = () => {
     if (!leaveTypeId) {
       setModalMessage('Choose Leave Type');
@@ -268,9 +317,19 @@ const calculateLeaveDays = () => {
     }
     return true;
   };
-  const handleSubmit = async () => {
-    if (!validateInputs()) return;
-    if (balanceLoading) {
+const handleSubmit = async () => {
+  console.log('========== SUBMIT CLICKED ==========');
+
+  // Validate form
+  if (!validateInputs()) {
+    console.log('Validation failed');
+    return;
+  }
+
+  console.log('Validation passed');
+
+  // Check balance loading
+  if (balanceLoading) {
     Alert.alert(
       'Please wait',
       'Leave balance is still loading.'
@@ -278,6 +337,7 @@ const calculateLeaveDays = () => {
     return;
   }
 
+  // Check balance exists
   if (!leaveBalance) {
     Alert.alert(
       'Leave Balance',
@@ -286,106 +346,202 @@ const calculateLeaveDays = () => {
     return;
   }
 
-  const requestedDays = calculateLeaveDays();
+  console.log('Leave Balance:', leaveBalance);
+  console.log('Selected Leave Type:', leaveType);
+
+  // Get available balance
+  const availableBalance = getLeaveBalancee(leaveType);
+
+  console.log(
+    'Available Balance:',
+    availableBalance
+  );
+
+  if (
+    availableBalance === null ||
+    Number.isNaN(availableBalance)
+  ) {
+    Alert.alert(
+      'Balance Not Available',
+      `Leave balance is not available for ${leaveType}.`
+    );
+    return;
+  }
+
+  // Calculate requested leave days
+  const requestedDays = calculateLeaveDays(
+    FromDate,
+    ToDate
+  );
+
+  console.log(
+    'Requested Leave Days:',
+    requestedDays
+  );
 
   if (requestedDays <= 0) {
     Alert.alert(
-      'Invalid Date',
-      'Please select a valid leave date.'
+      'Invalid Leave Dates',
+      'Please select valid From and To dates.'
     );
     return;
   }
 
-  const balanceKey = leaveBalanceMap[leaveTypeId];
-
-  if (!balanceKey) {
+  // Check balance
+  if (requestedDays > availableBalance) {
     Alert.alert(
-      'Leave Type',
-      'Unable to determine the selected leave type.'
+      'Insufficient Leave Balance',
+      `You don't have enough balance for ${leaveType}.\n\n` +
+      `Available: ${availableBalance.toFixed(2)} days\n` +
+      `Requested: ${requestedDays.toFixed(2)} days`
     );
+
     return;
   }
 
-  const availableBalance = Number(
-    leaveBalance[balanceKey] || 0
+  console.log(
+    '========== BALANCE CHECK PASSED =========='
   );
 
-  console.log('Selected Leave Type:', leaveTypeId);
-  console.log('Balance Key:', balanceKey);
-  console.log('Available Balance:', availableBalance);
-  console.log('Requested Days:', requestedDays);
+  setLoading(true);
 
-  // LossofPay does not require available leave balance
-  if (balanceKey !== 'LossofPay') {
-    const usableBalance = Math.max(0, availableBalance);
+  try {
+    const token = await AsyncStorage.getItem(
+      'access_token'
+    );
 
-    if (usableBalance < requestedDays) {
+    const details = await AsyncStorage.getItem(
+      'employeeDetails'
+    );
+
+    if (!token) {
       Alert.alert(
-        'Insufficient Leave Balance',
-        `You have ${usableBalance} day(s) of ${balanceKey} remaining, but you are trying to apply for ${requestedDays} day(s).`
+        'Session Expired',
+        'Please login again.'
       );
-
       return;
     }
-  }
-    setLoading(true);
-  
-    try {
-      const token = await AsyncStorage.getItem('access_token');
-      const details = await AsyncStorage.getItem('employeeDetails');
-      const employeeDetails = JSON.parse(details);
-    
-      const payload = {
-        EmployeeId: employeeDetails.EmployeeId,
-        FromDate: FromDate,
-        ToDate: ToDate,
-        LeaveTypeId: leaveTypeId,
-        LeaveFor: LeaveFor,
-        LeaveIn: LeaveIn,
-        Reason: reason,
-        LeaveStatus: 2
-      };
-    
-      console.log('Payload:', payload);
-    
-      const response = await fetch('https://hrexim.tranzol.com/api/Leave/Create', {
+
+    if (!details) {
+      Alert.alert(
+        'Error',
+        'Employee details not found.'
+      );
+      return;
+    }
+
+    const employeeDetails =
+      JSON.parse(details);
+
+    const payload = {
+      EmployeeId: employeeDetails.EmployeeId,
+      FromDate: FromDate,
+      ToDate: ToDate,
+      LeaveTypeId: leaveTypeId,
+      LeaveFor: LeaveFor,
+      LeaveIn: LeaveIn,
+      Reason: reason.trim(),
+      LeaveStatus: 2,
+    };
+
+    console.log(
+      '========== PAYLOAD =========='
+    );
+    console.log(payload);
+
+    const response = await fetch(
+      'https://hrexim.tranzol.com/api/Leave/Create',
+      {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
+          Accept: 'application/json',
         },
         body: JSON.stringify(payload),
-      });
-    
-      const contentType = response.headers.get('content-type');
-      let responseData;
-    
-      if (contentType && contentType.includes('application/json')) {
-        responseData = await response.json();
-      } else {
-        responseData = await response.text();
       }
-    
-      console.log('Response:', responseData);
-    
-      if (response.ok) {
-        setModalMessage('Leave successfully submitted!');
-        Alert.alert('Success', 'Leave successfully submitted!');
-        setIsModalVisible(true);
-        navigation.navigate('DrawerNavigation');
-      } else {
-        setModalMessage('Failed to submit leave. Please try again.');
-        setIsModalVisible(true);
-      
-      }
-    } catch (error) {
-      console.error('Error submitting leave:', error);
-      setModalMessage('An error occurred. Please try again.');
-      setIsModalVisible(true);
-    } finally {
-      setLoading(false);
+    );
+
+    console.log(
+      'Create Leave Status:',
+      response.status
+    );
+
+    const contentType =
+      response.headers.get('content-type');
+
+    let responseData;
+
+    if (
+      contentType &&
+      contentType.includes('application/json')
+    ) {
+      responseData = await response.json();
+    } else {
+      responseData = await response.text();
     }
-  }    
+
+    console.log(
+      'Create Leave Response:',
+      responseData
+    );
+
+    if (response.status === 401) {
+      Alert.alert(
+        'Session Expired',
+        'Your session has expired. Please login again.'
+      );
+      return;
+    }
+
+    if (!response.ok) {
+      const message =
+        typeof responseData === 'string'
+          ? responseData
+          : responseData?.message ||
+            responseData?.Message ||
+            responseData?.data?.ErrorMsg ||
+            'Failed to submit leave.';
+
+      Alert.alert(
+        'Unable to Submit',
+        message
+      );
+
+      return;
+    }
+
+    Alert.alert(
+      'Success',
+      'Leave successfully submitted!',
+      [
+        {
+          text: 'OK',
+          onPress: () => {
+            navigation.navigate(
+              'DrawerNavigation'
+            );
+          },
+        },
+      ]
+    );
+
+  } catch (error) {
+    console.error(
+      'Submit Leave Error:',
+      error
+    );
+
+    Alert.alert(
+      'Error',
+      error?.message ||
+        'An error occurred while submitting leave.'
+    );
+
+  } finally {
+    setLoading(false);
+  }
+};   
   
   
 
@@ -664,6 +820,7 @@ const calculateLeaveDays = () => {
     setLeaveTypeId(item.id); // Correctly set leaveTypeId
     console.log('Selected LeaveTypeId:', item.id); // Log for debugging
     setIsFocus(false);
+     const balance = getLeaveBalancee(item.label);
   }}
 />
 
@@ -697,6 +854,7 @@ const calculateLeaveDays = () => {
           mode="date"
           onConfirm={handleEndDateConfirm}
           onCancel={hideEndDatePicker}
+            maximumDate={new Date(Date.now() + 3 * 24 * 60 * 60 * 1000)}
         />
 
         <View

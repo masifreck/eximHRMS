@@ -46,7 +46,7 @@ const [currentMonth, setCurrentMonth] = useState(new Date());
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
-        });
+        }); 
 
         if (!response.ok) {
           //navigation.replace('newlogin');
@@ -167,6 +167,7 @@ const [currentMonth, setCurrentMonth] = useState(new Date());
       const AttendanceLatest = await response.json();
       setAttendanceData(AttendanceLatest); // Store fetched data
       setLoading(false); // Set loading to false when data is fetched
+      console.log('Fetched attendance data:', AttendanceLatest);
     } catch (error) {
       console.error('Error fetching employee data:', error.message);
       //navigation.replace('newlogin');
@@ -258,29 +259,21 @@ const getAttendanceType = attendance => {
   if (shiftName === 'WO' || test === 'WO') {
     return 'WO';
   }
-
   // Holiday
   if (shiftName === 'NH' || test === 'NH') {
     return 'HOLIDAY';
   }
 
   // Half Day explicitly returned by API
-  if (
-    shiftName === 'HD' ||
-    test === 'HD' ||
-    shiftName === 'HALF DAY' ||
-    test === 'HALF DAY'
-  ) {
-    return 'HALF_DAY';
-  }
+
 
   // Half Day based on working minutes
   if (
     shiftName === 'GN' &&
+      test === 'HF' &&
     attendance.LogInTime &&
-    attendance.LogOutTime &&
-    totalMinutes > 0 &&
-    totalMinutes < 240
+    attendance.LogOutTime 
+  
   ) {
     return 'HALF_DAY';
   }
@@ -313,7 +306,7 @@ const createCalendar = () => {
   const month = Number(selectedMonth) - 1; // JS month is 0-11
 
   const attendanceMap = {};
-
+console.log('attendanceData:', attendanceData)
   attendanceData?.forEach(item => {
     const dateKey = getAttendanceDateKey(item);
 
