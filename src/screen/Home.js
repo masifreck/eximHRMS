@@ -855,17 +855,7 @@ const Home = ({ route }) => {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.sectionHeader}>
-          <View>
-            <Text style={styles.sectionTitle}>
-              Quick Access
-            </Text>
-
-            <Text
-              style={styles.sectionSubtitle}
-            >
-              Manage your workplace activities
-            </Text>
-          </View>
+      
 
           <View
             style={styles.sectionIndicator}

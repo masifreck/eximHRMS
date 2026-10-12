@@ -29,7 +29,7 @@ const styles = StyleSheet.create({
   ================================================= */
 
   header: {
-    height: 70,
+    height: 85,
     backgroundColor: '#aa18ea',
     flexDirection: 'row',
     alignItems: 'center',
@@ -47,6 +47,7 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.18,
     shadowRadius: 7,
+    paddingTop: 30,
   },
 
   headerIconButton: {

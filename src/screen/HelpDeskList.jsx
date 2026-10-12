@@ -106,7 +106,9 @@ const HelpDeskList = ({ navigation }) => {
           },
         },
       );
-
+      const res = await response.json();
+console.log('api',`${API_URL}?userId=${employeeId}`)
+console.log('response',res)
       if (response.status === 401) {
         throw new Error(
           'Your session has expired. Please login again.',
@@ -596,13 +598,13 @@ const HelpDeskList = ({ navigation }) => {
         <TouchableOpacity
           style={styles.emptyCreateButton}
           onPress={() =>
-            navigation.navigate('AddIssue')
+            navigation.navigate('HelpDesk')
           }
           activeOpacity={0.8}
         >
           <Ionicons
             name="add"
-            size={18}
+            size={18}   
             color="#FFFFFF"
           />
 

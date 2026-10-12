@@ -339,15 +339,7 @@ const handleSave = async () => {
     return;
   }
 
-  if (!statusId) {
-    Alert.alert('Validation', 'Please select a status.');
-    return;
-  }
 
-  if (!priorityId) {
-    Alert.alert('Validation', 'Please select a priority.');
-    return;
-  }
 
   try {
     setSaving(true);
@@ -469,34 +461,7 @@ selectedFiles.forEach((file, index) => {
     // LOG FOR DEBUGGING
     // -----------------------------
 
-    console.log('Create Issue FormData:' , formData);
-
-    console.log('IssueTypeId:', issueTypeId);
-    console.log('Description:', description.trim());
-    console.log('StatusId:', statusId);
-    console.log('PriorityId:', priorityId);
-    console.log('UserId:', employeeId);
-    console.log(
-      'InsertDate:',
-      new Date().toISOString()
-    );
-    console.log(
-      'TargetDate:',
-      targetDate
-        ? targetDate.toISOString()
-        : null
-    );
-    console.log(
-      'CloseDate:',
-      closeDate
-        ? closeDate.toISOString()
-        : null
-    );
-    console.log(
-      'CloseRemarks:',
-      closeRemarks.trim() || null
-    );
-
+ 
     // -----------------------------
     // API REQUEST
     // -----------------------------
@@ -579,10 +544,22 @@ selectedFiles.forEach((file, index) => {
         .toLowerCase()
         .includes('success')
     ) {
-      Alert.alert(
-        'Success',
-        serverMessage || 'Issue created successfully.'
-      );
+     
+    Alert.alert(
+      'Success',
+      String(serverMessage || 'Issue created successfully.'),
+      [
+        {
+          text: 'OK',
+          onPress: () => {
+            console.log('OK pressed');
+
+            navigation.goBack();
+          },
+        },
+      ],
+      { cancelable: false }
+    );
 
       // Clear form
   
@@ -616,11 +593,23 @@ selectedFiles.forEach((file, index) => {
     // HTTP SUCCESS
     // -----------------------------
 
-    Alert.alert(
-      'Success',
-      serverMessage ||
-        'Issue created successfully.'
-    );
+  Alert.alert(
+  'Success',
+  serverMessage || 'Issue created successfully.',
+  [
+    {
+      text: 'OK',
+      onPress: () => {
+        console.log('OK pressed');
+
+        setTimeout(() => {
+          navigation.goBack();
+        }, 100);
+      },
+    },
+  ],
+  { cancelable: false }
+);
 
   } catch (error) {
     console.log(
@@ -1050,7 +1039,7 @@ selectedFiles.forEach((file, index) => {
 
             {/* DESCRIPTION */}
 
-            <View style={styles.field}>
+            <View style={styles.field}> 
               <Text style={styles.label}>
                 Description
                 <Text style={styles.required}>
@@ -1129,11 +1118,9 @@ selectedFiles.forEach((file, index) => {
             </View>
           </View>
 
-          {/* ---------------------------------------
-              STATUS & PRIORITY
-          ---------------------------------------- */}
+   
 
-          <View style={styles.section}>
+          {/* <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <View style={styles.sectionIcon}>
                 <MaterialCommunityIcons
@@ -1158,7 +1145,7 @@ selectedFiles.forEach((file, index) => {
               </View>
             </View>
 
-            {/* STATUS */}
+     
 
             <View style={styles.field}>
               <Text style={styles.label}>
@@ -1240,7 +1227,7 @@ selectedFiles.forEach((file, index) => {
               )}
             </View>
 
-            {/* PRIORITY */}
+      
 
             <View
               style={[
@@ -1332,13 +1319,10 @@ selectedFiles.forEach((file, index) => {
                 </Text>
               )}
             </View>
-          </View>
+          </View> */}
 
-          {/* ---------------------------------------
-              SCHEDULE
-          ---------------------------------------- */}
 
-          <View style={styles.section}>
+          {/* <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <View style={styles.sectionIcon}>
                 <MaterialCommunityIcons
@@ -1363,7 +1347,7 @@ selectedFiles.forEach((file, index) => {
               </View>
             </View>
 
-            {/* TARGET DATE */}
+       
 
             <View style={styles.field}>
               <Text style={styles.label}>
@@ -1413,7 +1397,7 @@ selectedFiles.forEach((file, index) => {
               </TouchableOpacity>
             </View>
 
-            {/* CLOSE DATE */}
+      
 
             <View style={styles.field}>
               <Text style={styles.label}>
@@ -1463,7 +1447,7 @@ selectedFiles.forEach((file, index) => {
               </TouchableOpacity>
             </View>
 
-            {/* CLOSE REMARKS */}
+      
 
             <View
               style={[
@@ -1519,11 +1503,9 @@ selectedFiles.forEach((file, index) => {
                 />
               </View>
             </View>
-          </View>
+          </View> */}
 
-          {/* ---------------------------------------
-              SAVE BUTTON
-          ---------------------------------------- */}
+       
    <SingleFilePicker onFileSelected={handleFileSelected} />
        <TouchableOpacity
   style={[
